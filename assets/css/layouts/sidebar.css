@@ -188,3 +188,10 @@
 .text-warning-600 { color: var(--circle-warning) !important; }
 .text-success-600 { color: var(--circle-success) !important; }
 .text-danger-600 { color: var(--circle-danger) !important; }
+
+@media (min-width: 1280px) {
+  .dashboard-main {
+    margin-left: 280px; /* Sidebar ki width ke barabar margin dein */
+    transition: all 0.3s ease;
+  }
+}

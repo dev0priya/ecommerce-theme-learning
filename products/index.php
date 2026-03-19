@@ -1,89 +1,87 @@
-<?php
-require '../include/load.php';
-checkLogin(); // Ensure only admins are here
+<?php 
+require '../include/load.php'; 
+checkLogin(); 
 
-// Project A Logic: Fetch all products
-$stmt = $pdo->query("SELECT * FROM products ORDER BY id DESC");
+$title = 'All Products';
+$subTitle = 'Product Management';
+
+$script = "<script>
+    if (document.getElementById('selection-table') && typeof simpleDatatables.DataTable !== 'undefined') {
+        new simpleDatatables.DataTable('#selection-table', {
+            columns: [{ select: [0, 4], sortable: false }]
+        });
+    }
+</script>";
+
+$stmt = $pdo->query("SELECT p.*, c.name as cat_name FROM products p LEFT JOIN categories c ON p.category_id = c.id ORDER BY p.id DESC");
 $products = $stmt->fetchAll();
 
-include '../partials/header.php'; 
+include '../partials/layouts/layoutTop.php'; 
 ?>
 
-<div class="flex min-h-screen">
-    <?php include '../partials/sidebar-admin.php'; ?>
+<div class="dashboard-main-body">
+    <?php include '../partials/breadcrumb.php'; ?>
 
-    <main class="dashboard-main flex-grow-1">
-        <div class="dashboard-main-body p-6">
-            
-            <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
-                <h6 class="text-2xl font-bold text-neutral-900 dark:text-white mb-0">Product Management</h6>
-                <a href="add-product.php" class="btn btn-primary-600 px-6 py-2 rounded-lg flex items-center gap-2">
-                    <iconify-icon icon="lucide:plus" class="text-xl"></iconify-icon>
-                    Add New Product
-                </a>
-            </div>
-
-            <div class="card h-full border-0 shadow-sm rounded-xl overflow-hidden">
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table bordered-table mb-0">
-                            <thead>
-                                <tr>
-                                    <th scope="col" class="ps-6">Product Details</th>
-                                    <th scope="col">Category</th>
-                                    <th scope="col">Price</th>
-                                    <th scope="col">Stock Status</th>
-                                    <th scope="col" class="text-center">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php foreach ($products as $p): ?>
-                                <tr>
-                                    <td class="ps-6">
-                                        <div class="flex items-center">
-                                            <img src="../assets/uploads/<?= e($p['image']) ?>" alt="" class="w-12 h-12 shrink-0 me-3 rounded-lg object-cover border border-neutral-100">
-                                            <div class="grow">
-                                                <h6 class="text-base mb-0 font-semibold text-neutral-800 dark:text-white"><?= e($p['product_name']) ?></h6>
-                                                <span class="text-xs text-secondary-light">ID: #<?= $p['id'] ?></span>
-                                            </div>
+    <div class="grid grid-cols-12 gap-6">
+        <div class="col-span-12">
+            <div class="card border-0 shadow-sm rounded-xl overflow-hidden bg-white dark:bg-neutral-900">
+                <div class="card-header flex justify-between items-center p-6 border-b border-neutral-100 dark:border-neutral-700">
+                    <h6 class="text-xl font-bold text-neutral-800 dark:text-white mb-0">Product List</h6>
+                    <a href="add.php" class="btn btn-primary-600 px-6 py-2.5 rounded-lg flex items-center gap-2 text-sm font-semibold text-white">
+                        <iconify-icon icon="lucide:plus" class="text-lg"></iconify-icon>
+                        Add New Product
+                    </a>
+                </div>
+                
+                <div class="card-body p-6">
+                    <table id="selection-table" class="border border-neutral-200 dark:border-neutral-700 rounded-lg border-separate w-full">
+                        <thead>
+                            <tr class="bg-neutral-50 dark:bg-neutral-800">
+                                <th scope="col" class="p-4 text-neutral-800 dark:text-white font-bold text-sm">S.L</th>
+                                <th scope="col" class="p-4 text-neutral-800 dark:text-white font-bold text-sm">Product Details</th>
+                                <th scope="col" class="p-4 text-neutral-800 dark:text-white font-bold text-sm">Category</th>
+                                <th scope="col" class="p-4 text-neutral-800 dark:text-white font-bold text-sm">Price</th>
+                                <th scope="col" class="p-4 text-neutral-800 dark:text-white font-bold text-sm text-center">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php 
+                            $sl = 1;
+                            foreach ($products as $row): 
+                                $imgName = !empty($row['image']) ? $row['image'] : 'default-product.png';
+                                $imgPath = "../assets/uploads/" . $imgName;
+                            ?>
+                            <tr class="hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-all border-b border-neutral-100 dark:border-neutral-700">
+                                <td class="p-4 text-sm text-neutral-600 dark:text-neutral-400"><?= $sl++; ?></td>
+                                <td class="p-4">
+                                    <div class="flex items-center">
+                                        <img src="<?= $imgPath ?>" alt="" class="w-10 h-10 shrink-0 me-3 rounded-lg object-cover border border-neutral-100 dark:border-neutral-700">
+                                        <div class="grow">
+                                            <h6 class="text-sm mb-0 font-bold text-neutral-800 dark:text-white"><?= e($row['product_name']) ?></h6>
+                                            <span class="text-xs text-primary-600 font-medium">#PROD-<?= $row['id'] ?></span>
                                         </div>
-                                    </td>
-                                    <td><span class="text-sm font-medium">Fashion</span></td> <td><span class="text-lg font-bold text-primary-600">$<?= number_format($p['price'], 2) ?></span></td>
-                                    <td>
-    <?php 
-        // 1. Rename 'stock' to match your actual DB column (e.g., 'quantity')
-        // If your column is 'qty', change $p['stock'] to $p['qty'] below:
-        $currentStock = $p['quantity'] ?? $p['qty'] ?? 0; 
-
-        // 2. Apply Project B Status Badges
-        if ($currentStock <= 0) {
-            echo '<span class="bg-danger-100 text-danger-600 px-3 py-1 rounded-full text-xs font-bold">Out of Stock</span>';
-        } elseif ($currentStock < 10) {
-            echo '<span class="bg-warning-100 text-warning-600 px-3 py-1 rounded-full text-xs font-bold">Low Stock ('.$currentStock.')</span>';
-        } else {
-            echo '<span class="bg-success-100 text-success-600 px-3 py-1 rounded-full text-xs font-bold">Available ('.$currentStock.')</span>';
-        }
-    ?>
-</td>
-                                    <td class="text-center">
-                                        <div class="flex items-center justify-center gap-2">
-                                            <a href="edit.php?id=<?= $p['id'] ?>" class="w-8 h-8 bg-info-100 text-info-600 rounded-lg flex items-center justify-center hover:bg-info-600 hover:text-white transition-all">
-                                                <iconify-icon icon="lucide:edit"></iconify-icon>
-                                            </a>
-                                            <a href="delete.php?id=<?= $p['id'] ?>" class="w-8 h-8 bg-danger-100 text-danger-600 rounded-lg flex items-center justify-center hover:bg-danger-600 hover:text-white transition-all" onclick="return confirm('Delete this product?')">
-                                                <iconify-icon icon="lucide:trash-2"></iconify-icon>
-                                            </a>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <?php endforeach; ?>
-                            </tbody>
-                        </table>
-                    </div>
+                                    </div>
+                                </td>
+                                <td class="p-4 text-sm text-neutral-600 dark:text-neutral-400"><?= e($row['cat_name'] ?? 'General') ?></td>
+                                <td class="p-4 text-sm font-bold text-neutral-800 dark:text-white">$<?= number_format($row['price'], 2) ?></td>
+                                <td class="p-4">
+                                    <div class="flex items-center justify-center gap-2">
+                                        <a href="edit.php?id=<?= $row['id'] ?>" class="w-8 h-8 bg-success-100 text-success-600 rounded-full inline-flex items-center justify-center">
+                                            <iconify-icon icon="lucide:edit"></iconify-icon>
+                                        </a>
+                                        <a href="delete.php?id=<?= $row['id'] ?>" onclick="return confirm('Delete?')" class="w-8 h-8 bg-danger-100 text-danger-600 rounded-full inline-flex items-center justify-center">
+                                            <iconify-icon icon="mingcute:delete-2-line"></iconify-icon>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
                 </div>
             </div>
-
         </div>
-        <?php include '../partials/footer.php'; ?>
-    </main>
+    </div>
 </div>
+
+<?php include '../partials/layouts/layoutBottom.php'; ?>
