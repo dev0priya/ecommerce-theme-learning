@@ -15,7 +15,14 @@ include '../partials/head.php';
 ?>
 
 <body>
-<?php include '../partials/sidebar.php'; ?>
+<?php
+// Option A: Using your existing BASE_URL logic (Recommended)
+if ($_SESSION['user_role'] === 'admin') {
+    include $_SERVER['DOCUMENT_ROOT'] . '/ecommerce-theme-learning/partials/sidebar-admin.php';
+} else {
+    include $_SERVER['DOCUMENT_ROOT'] . '/ecommerce-theme-learning/partials/sidebar-user.php';
+}
+?>
 
 <div class="content">
     <h1>Order Management</h1>

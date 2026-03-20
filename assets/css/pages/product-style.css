@@ -1,0 +1,104 @@
+/* assets/css/pages/product-style.css */
+:root {
+    --primary-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+    --surface-bg: #f8fafc;
+}
+
+.vibrant-card {
+    background: #ffffff;
+    border-radius: 28px;
+    border: 1px solid rgba(99, 102, 241, 0.1);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.03);
+    transition: transform 0.3s ease;
+}
+
+.pop-input {
+    background: #f1f5f9;
+    border: 2px solid transparent;
+    border-radius: 18px;
+    padding: 15px 20px;
+    font-weight: 700;
+    color: #1e293b;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.pop-input:focus {
+    background: #fff;
+    border-color: #6366f1;
+    box-shadow: 0 0 20px rgba(99, 102, 241, 0.15);
+    outline: none;
+    transform: translateY(-2px);
+}
+
+.btn-pop {
+    background: var(--primary-gradient);
+    color: white;
+    padding: 14px 32px;
+    border-radius: 18px;
+    font-weight: 800;
+    box-shadow: 0 10px 25px rgba(99, 102, 241, 0.35);
+    transition: all 0.3s;
+    border: none;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.btn-pop:hover {
+    transform: scale(1.03) translateY(-2px);
+    box-shadow: 0 15px 30px rgba(99, 102, 241, 0.45);
+}
+
+.upload-vibrant {
+    background: rgba(99, 102, 241, 0.03);
+    border: 2px dashed #6366f1;
+    border-radius: 24px;
+    transition: 0.3s;
+}
+
+.status-glass {
+    background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
+    color: white;
+    border-radius: 24px;
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+}
+
+.accent-dot {
+    width: 8px;
+    height: 8px;
+    background: #4ade80;
+    border-radius: 50%;
+    box-shadow: 0 0 15px #4ade80;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(0.95); opacity: 0.7; }
+    50% { transform: scale(1.2); opacity: 1; }
+    100% { transform: scale(0.95); opacity: 0.7; }
+}
+
+/* product-style.css mein add karein */
+.premium-gradient-bg {
+    background: linear-gradient(135deg, #fdfcfb 0%, #e2d1c3 100%);
+    min-height: 100vh;
+}
+
+.image-badge {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 5px 12px;
+    border-radius: 12px;
+    font-size: 10px;
+    font-weight: 900;
+    color: #4f46e5;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.vibrant-card {
+    border-top: 4px solid #6366f1 !important; /* Woh blue line jo aapko pasand aayi */
+}

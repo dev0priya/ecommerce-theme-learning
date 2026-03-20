@@ -1,90 +1,147 @@
-<?php
-require '../include/load.php';
-checkLogin();
+<?php 
+require '../include/load.php'; 
+checkLogin(); 
 
-// Fetch categories for dropdown
-$categories = $pdo->query(
-    "SELECT * FROM categories ORDER BY name ASC"
-)->fetchAll();
+$title = 'Create Masterpiece';
+$subTitle = 'E-Commerce / Inventory';
 
-$error = '';
-
+// Form Logic (Stable PHP)
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-
     $product_name = $_POST['product_name'];
-    $price        = $_POST['price'];
-    $category_id  = $_POST['category_id'];
+    $price = $_POST['price'];
+    $category_id = $_POST['category_id'];
+    $image_name = "";
 
-    // Validate basic fields
-    if ($product_name === '' || !is_numeric($price)) {
-        $error = "Please enter valid product details.";
+    if (isset($_FILES['image']) && $_FILES['image']['error'] === 0) {
+        $ext = pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION);
+        $image_name = uniqid('prod_', true) . '.' . $ext;
+        move_uploaded_file($_FILES['image']['tmp_name'], "../assets/uploads/" . $image_name);
     }
 
-    // Attempt image upload using centralized helper
-    $imageName = null;
-
-    if (!empty($_FILES['image']['name'])) {
-        $imageName = uploadImage($_FILES['image'], 'uploads');
-
-        if (!$imageName) {
-            $error = "Upload failed. Please upload a valid image (JPG, PNG, WEBP).";
-        }
-    }
-
-    // Save product if no errors
-    if (empty($error)) {
-        $stmt = $pdo->prepare(
-            "INSERT INTO products (product_name, price, category_id, image)
-             VALUES (?, ?, ?, ?)"
-        );
-        $stmt->execute([
-            $product_name,
-            $price,
-            $category_id,
-            $imageName
-        ]);
-
-        redirect('index.php');
-    }
+    $stmt = $pdo->prepare("INSERT INTO products (product_name, price, category_id, image) VALUES (?, ?, ?, ?)");
+    $stmt->execute([$product_name, $price, $category_id, $image_name]);
+    header("Location: index.php");
+    exit();
 }
 
-include '../partials/head.php';
+$categories = $pdo->query("SELECT * FROM categories ORDER BY name ASC")->fetchAll();
+include '../partials/layouts/layoutTop.php'; 
 ?>
 
-<body>
-<?php include '../partials/sidebar.php'; ?>
+<link rel="stylesheet" href="../assets/css/pages/product-style.css">
 
-<div class="content">
-    <h2>Add New Product</h2>
+<div class="dashboard-main-body premium-gradient-bg px-10 py-12">
+    <form action="add.php" method="POST" enctype="multipart/form-data">
+        
+        <div class="flex items-center justify-between mb-12">
+            <div>
+                <span class="text-indigo-600 font-black text-[10px] uppercase tracking-[0.4em] mb-1 block">Creation Mode</span>
+                <h1 class="text-4xl font-black bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600 tracking-tight">
+                    New Masterpiece
+                </h1>
+                <p class="text-slate-400 font-bold text-[10px] uppercase tracking-[0.3em] mt-2 ml-1">E-Commerce Catalog • 2026</p>
+            </div>
+            <div class="flex items-center gap-6">
+                <a href="index.php" class="text-slate-400 font-black text-sm hover:text-red-500 transition-colors">Discard</a>
+                <button type="submit" class="btn-pop flex items-center gap-3 shadow-2xl">
+                    <iconify-icon icon="solar:magic-stick-3-bold-duotone" class="text-2xl"></iconify-icon>
+                    Create Product
+                </button>
+            </div>
+        </div>
 
-    <?php if ($error): ?>
-        <p style="color:red"><?= e($error) ?></p>
-    <?php endif; ?>
+        <div class="grid grid-cols-12 gap-10">
+            <div class="col-span-12 lg:col-span-8">
+                <div class="vibrant-card p-10 border-t-4 border-indigo-600">
+                    <h4 class="text-xl font-black text-slate-800 mb-10 flex items-center gap-3">
+                        <span class="w-2 h-8 bg-indigo-600 rounded-full"></span>
+                        Core Information
+                    </h4>
 
-    <form method="POST" enctype="multipart/form-data">
+                    <div class="space-y-8">
+                        <div>
+                            <label class="block text-[11px] font-black text-slate-400 uppercase tracking-widest mb-3 ml-2">Product Title</label>
+                            <input type="text" name="product_name" class="pop-input w-full text-lg" placeholder="e.g. Premium Leather Jacket" required>
+                        </div>
 
-        <label>Product Name:</label><br>
-        <input type="text" name="product_name" required><br><br>
+                        <div class="grid grid-cols-2 gap-8">
+                            <div>
+                                <label class="block text-[11px] font-black text-slate-400 uppercase tracking-widest mb-3 ml-2">Price ($)</label>
+                                <div class="relative">
+                                    <span class="absolute left-6 top-1/2 -translate-y-1/2 text-indigo-600 font-black">$</span>
+                                    <input type="number" step="0.01" name="price" class="pop-input w-full pl-10 font-black text-slate-800 text-2xl" placeholder="0.00" required>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-black text-slate-400 uppercase tracking-widest mb-3 ml-2">Category</label>
+                                <select name="category_id" class="pop-input w-full font-bold cursor-pointer appearance-none" required>
+                                    <option value="">Select Category</option>
+                                    <?php foreach ($categories as $cat): ?>
+                                        <option value="<?= $cat['id'] ?>"><?= e($cat['name']) ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-        <label>Price:</label><br>
-        <input type="number" step="0.01" name="price" required><br><br>
+            <div class="col-span-12 lg:col-span-4 space-y-8">
+                <div class="vibrant-card p-8">
+                    <h4 class="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-6 text-center">Product Visual</h4>
+                    <div class="upload-vibrant relative p-10 text-center group cursor-pointer overflow-hidden rounded-3xl shadow-inner">
+                        <input type="file" name="image" id="imgInput" class="absolute inset-0 opacity-0 z-30 cursor-pointer" accept="image/*">
+                        
+                        <div id="placeholderView" class="py-10">
+                            <div class="w-16 h-16 bg-white rounded-2xl shadow-lg flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-all duration-500">
+                                <iconify-icon icon="solar:gallery-add-bold-duotone" class="text-3xl text-indigo-600"></iconify-icon>
+                            </div>
+                            <p class="text-[11px] font-black text-slate-700 uppercase">Drop Image Here</p>
+                        </div>
 
-        <label>Category:</label><br>
-        <select name="category_id" required>
-            <?php foreach ($categories as $c): ?>
-                <option value="<?= $c['id'] ?>">
-                    <?= e($c['name']) ?>
-                </option>
-            <?php endforeach; ?>
-        </select><br><br>
+                        <div id="previewContainer" class="hidden relative z-20">
+                            <img id="imgPreview" src="#" class="w-full h-56 object-cover rounded-2xl shadow-2xl border-4 border-white transition-transform duration-700 group-hover:scale-105">
+                            <button type="button" onclick="resetImage()" class="absolute -top-3 -right-3 bg-white text-red-500 w-8 h-8 rounded-full shadow-2xl flex items-center justify-center font-black hover:bg-red-500 hover:text-white transition-all">×</button>
+                        </div>
+                    </div>
+                </div>
 
-        <label>Product Image:</label><br>
-        <input type="file" name="image" accept="image/*"><br><br>
-
-        <button type="submit">Save Product</button>
-
+                <div class="status-glass shadow-indigo-200 shadow-2xl">
+                    <div class="relative z-10">
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="text-[10px] font-black uppercase text-indigo-300 tracking-[0.2em]">Live Status</span>
+                            <div class="accent-dot"></div>
+                        </div>
+                        <h5 class="font-black text-lg text-white">Online Ready</h5>
+                        <p class="text-[10px] text-indigo-200/60 mt-2 font-medium">Auto-sync with global storefront enabled.</p>
+                    </div>
+                    <div class="absolute -right-10 -bottom-10 w-32 h-32 bg-indigo-500/20 rounded-full blur-3xl"></div>
+                </div>
+            </div>
+        </div>
     </form>
 </div>
 
-</body>
-</html>
+<script>
+    const imgInput = document.getElementById('imgInput');
+    const imgPreview = document.getElementById('imgPreview');
+    const previewContainer = document.getElementById('previewContainer');
+    const placeholderView = document.getElementById('placeholderView');
+
+    imgInput.onchange = evt => {
+        const [file] = imgInput.files;
+        if (file) {
+            imgPreview.src = URL.createObjectURL(file);
+            previewContainer.classList.remove('hidden');
+            placeholderView.classList.add('hidden');
+        }
+    }
+
+    function resetImage() {
+        imgInput.value = "";
+        previewContainer.classList.add('hidden');
+        placeholderView.classList.remove('hidden');
+    }
+</script>
+
+<?php include '../partials/layouts/layoutBottom.php'; ?>
