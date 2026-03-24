@@ -154,4 +154,6 @@ function isFolderActive($folderName, $currentPath) {
             </li>
         </ul>
     </div>
+    
 </aside>
+<script src="<?= BASE_URL ?>/assets/js/layouts/sidebar.js"></script>
