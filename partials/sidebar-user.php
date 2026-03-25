@@ -4,29 +4,46 @@
     </button>
     
     <div>
-        <a href="<?= BASE_URL ?>/user-dashboard.php" class="sidebar-logo">
-            <img src="<?= BASE_URL ?>/assets/uploads/<?= getSetting('site_logo', $pdo); ?>" alt="site logo" class="light-logo w-10 h-10">
-            <span class="text-xl font-bold text-neutral-900 dark:text-white ms-2">User Panel</span>
+        <a href="<?= BASE_URL ?>/modules/user/dashboard.php" class="sidebar-logo">
+            <img src="<?= BASE_URL ?>/assets/uploads/<?= getSetting('site_logo', $pdo); ?>" 
+                 class="light-logo w-10 h-10">
+            <span class="text-xl font-bold text-neutral-900 ms-2">User Panel</span>
         </a>
     </div>
 
     <div class="sidebar-menu-area">
         <ul class="sidebar-menu" id="sidebar-menu">
-            
+
+            <!-- ================= ACCOUNT ================= -->
             <li class="sidebar-menu-group-title">My Account</li>
-            
+
             <li>
-    <a href="<?= BASE_URL ?>/dashboard.php">
-        <iconify-icon icon="solar:pie-chart-outline" class="menu-icon"></iconify-icon>
-        <span>Dashboard</span>
-    </a>
-</li>
-<li>
-    <a href="<?= BASE_URL ?>/orders/index.php">
-        <iconify-icon icon="hugeicons:invoice-03" class="menu-icon"></iconify-icon>
-        <span>Orders</span>
-    </a>
-</li>
+                <a href="<?= BASE_URL ?>/modules/user/dashboard.php">
+                    <iconify-icon icon="solar:pie-chart-outline" class="menu-icon"></iconify-icon>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+
+            <li>
+                <a href="<?= BASE_URL ?>/modules/user/orders.php">
+                    <iconify-icon icon="hugeicons:invoice-03" class="menu-icon"></iconify-icon>
+                    <span>My Orders</span>
+                </a>
+            </li>
+
+            <li>
+                <a href="<?= BASE_URL ?>/modules/user/dashboard.php#address">
+                    <iconify-icon icon="mdi:map-marker-outline" class="menu-icon"></iconify-icon>
+                    <span>Addresses</span>
+                </a>
+            </li>
+
+            <li>
+                <a href="<?= BASE_URL ?>/modules/user/dashboard.php#security">
+                    <iconify-icon icon="solar:lock-password-outline" class="menu-icon"></iconify-icon>
+                    <span>Security</span>
+                </a>
+            </li>
 
             <li>
                 <a href="<?= BASE_URL ?>/edit-profile.php">
@@ -35,15 +52,41 @@
                 </a>
             </li>
 
-            <li class="sidebar-menu-group-title">Store</li>
+            <!-- ================= SHOP ================= -->
+            <li class="sidebar-menu-group-title">Shopping</li>
 
             <li>
                 <a href="<?= BASE_URL ?>/index.php">
-                    <iconify-icon icon="mage:shopping-cart" class="menu-icon"></iconify-icon>
-                    <span>Continue Shopping</span>
+                    <iconify-icon icon="mdi:shopping-outline" class="menu-icon"></iconify-icon>
+                    <span>Shop</span>
                 </a>
             </li>
 
+            <li>
+                <a href="<?= BASE_URL ?>/cart/index.php">
+                    <iconify-icon icon="mdi:cart-outline" class="menu-icon"></iconify-icon>
+                    <span>My Cart</span>
+                </a>
+            </li>
+
+            <li>
+                <a href="<?= BASE_URL ?>/wishlist.php">
+                    <iconify-icon icon="mdi:heart-outline" class="menu-icon"></iconify-icon>
+                    <span>Wishlist</span>
+                </a>
+            </li>
+
+            <!-- ================= SUPPORT ================= -->
+            <li class="sidebar-menu-group-title">Support</li>
+
+            <li>
+                <a href="<?= BASE_URL ?>/contact.php">
+                    <iconify-icon icon="mdi:help-circle-outline" class="menu-icon"></iconify-icon>
+                    <span>Help Center</span>
+                </a>
+            </li>
+
+            <!-- ================= LOGOUT ================= -->
             <li>
                 <a href="<?= BASE_URL ?>/logout.php" class="text-danger-600">
                     <iconify-icon icon="lucide:power" class="menu-icon text-danger-600"></iconify-icon>

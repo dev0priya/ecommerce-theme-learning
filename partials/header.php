@@ -59,11 +59,22 @@
 
                     <div class="flex items-center gap-3">
                         <?php if (isset($_SESSION['user_id'])): ?>
-                            <a href="<?= BASE_URL ?>/user-dashboard.php" class="flex items-center gap-2 px-3 py-2 bg-primary-50 dark:bg-primary-600/25 rounded-lg text-primary-600 decoration-none">
-                                <iconify-icon icon="solar:user-linear" class="text-xl"></iconify-icon>
-                                <span class="text-sm font-semibold">Dashboard</span>
-                            </a>
-                        <?php else: ?>
+
+    <?php
+        $dashboardLink = ($_SESSION['user_role'] === 'admin')
+            ? BASE_URL . '/dashboard.php'
+            : BASE_URL . '/modules/user/dashboard.php';
+    ?>
+
+    <a href="<?= $dashboardLink ?>" 
+       class="flex items-center gap-2 px-3 py-2 bg-primary-50 dark:bg-primary-600/25 rounded-lg text-primary-600 decoration-none">
+
+        <iconify-icon icon="solar:user-linear" class="text-xl"></iconify-icon>
+        <span class="text-sm font-semibold">Dashboard</span>
+
+    </a>
+
+<?php else: ?>
                             <a href="<?= BASE_URL ?>/sign-in.php" class="flex items-center gap-2 px-4 py-2 border border-neutral-200 dark:border-neutral-600 rounded-lg text-neutral-900 dark:text-white hover:text-primary-600 decoration-none">
                                 <iconify-icon icon="lucide:power" class="text-xl"></iconify-icon>
                                 <span class="text-sm font-medium">Login</span>

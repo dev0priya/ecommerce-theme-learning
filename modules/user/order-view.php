@@ -1,19 +1,18 @@
 <?php
-require 'include/load.php';
+require '../../include/load.php';
 checkLogin();
 
 if ($_SESSION['user_role'] !== 'user') {
-    redirect('dashboard.php');
+    redirect('../../dashboard.php');
 }
 
 $orderId = $_GET['id'] ?? null;
 $userId = $_SESSION['user_id'];
 
 if (!$orderId) {
-    redirect('user-dashboard.php');
+    redirect('dashboard.php');
 }
 
-// Fetch order belonging to THIS user only
 $stmt = $pdo->prepare("
     SELECT * FROM orders 
     WHERE id = ? AND user_id = ?
@@ -22,10 +21,9 @@ $stmt->execute([$orderId, $userId]);
 $order = $stmt->fetch();
 
 if (!$order) {
-    redirect('user-dashboard.php');
+    redirect('dashboard.php');
 }
 
-// Fetch order items
 $stmt = $pdo->prepare("
     SELECT products.product_name,
            order_items.quantity,
@@ -37,8 +35,15 @@ $stmt = $pdo->prepare("
 $stmt->execute([$orderId]);
 $items = $stmt->fetchAll();
 
-include 'partials/head.php';
+include '../../partials/head.php';
 ?>
+
+<?php include '../../partials/header.php'; ?>
+
+<div style="display:flex;">
+<?php include '../../partials/sidebar-user.php'; ?>
+
+<div style="padding:30px;">
 
 <h2>Order #<?= $order['id'] ?></h2>
 <p>Status: <?= e($order['status']) ?></p>
@@ -62,11 +67,18 @@ include 'partials/head.php';
 
 </table>
 
+<br>
+
 <?php if ($order['status'] === 'Pending'): ?>
-<form method="POST" action="user-cancel-order.php">
+<form method="POST" action="cancel-order.php">
     <input type="hidden" name="order_id" value="<?= $order['id'] ?>">
     <button type="submit" style="background:red;color:white;">
         Cancel Order
     </button>
 </form>
 <?php endif; ?>
+
+</div>
+</div>
+
+<?php include '../../partials/footer.php'; ?>

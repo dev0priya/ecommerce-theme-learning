@@ -29,7 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($user['role'] === 'admin') {
                 redirect('dashboard.php');          // Admin dashboard
             } else {
-                redirect('user-dashboard.php');     // Normal user dashboard
+                redirect('modules/user/dashboard.php');     // Normal user dashboard
             }
 
         } else {

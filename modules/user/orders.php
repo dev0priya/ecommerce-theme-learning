@@ -1,9 +1,9 @@
 <?php
-require 'include/load.php';
+require '../../include/load.php';
 checkLogin();
 
 if ($_SESSION['user_role'] !== 'user') {
-    redirect('dashboard.php');
+    redirect('../../dashboard.php');
 }
 
 $userId = $_SESSION['user_id'];
@@ -17,12 +17,13 @@ $stmt = $pdo->prepare("
 $stmt->execute([$userId]);
 $orders = $stmt->fetchAll();
 
-include 'partials/head.php';
+include '../../partials/head.php';
 ?>
 
-<div style="display:flex;">
+<?php include '../../partials/header.php'; ?>
 
-<?php include 'partials/sidebar-user.php'; ?>
+<div style="display:flex;">
+<?php include '../../partials/sidebar-user.php'; ?>
 
 <div style="flex:1; padding:30px;">
 
@@ -42,9 +43,7 @@ include 'partials/head.php';
     <td><?= date('d M Y', strtotime($order['created_at'])) ?></td>
     <td><?= e($order['status']) ?></td>
     <td>
-        <a href="user-order-view.php?id=<?= $order['id'] ?>">
-            View
-        </a>
+        <a href="order-view.php?id=<?= $order['id'] ?>">View</a>
     </td>
 </tr>
 <?php endforeach; ?>
@@ -53,3 +52,5 @@ include 'partials/head.php';
 
 </div>
 </div>
+
+<?php include '../../partials/footer.php'; ?>
