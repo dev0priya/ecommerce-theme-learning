@@ -42,29 +42,50 @@ try {
          VALUES (?, ?, ?, ?)"
     );
 
+    // --- NEW: Prepare Invoice Item Statement ---
+    $stmtInvoiceItem = $pdo->prepare(
+        "INSERT INTO invoice_items (invoice_id, product_name, quantity, price_per_unit, total_price)
+         VALUES (?, ?, ?, ?, ?)"
+    );
+
     foreach ($products as $p) {
         $qty = $_SESSION['cart'][$p['id']];
-        $stmtItem->execute([
-            $orderId,
-            $p['id'],
-            $qty,
-            $p['price']
-        ]);
+        $itemPrice = $p['price'];
+        $itemTotal = $qty * $itemPrice;
+
+        $stmtItem->execute([$orderId, $p['id'], $qty, $itemPrice]);
     }
 
-    // 6️⃣ COMMIT (SAVE EVERYTHING)
+    // --- NEW: 6️⃣ Create Invoice (Project A Logic) ---
+    $invoiceNum = "INV-" . date('Y') . "-" . str_pad($orderId, 4, "0", STR_PAD_LEFT);
+    $tax = $grandTotal * 0.10;
+    $finalTotal = $grandTotal + $tax;
+
+    $stmtInv = $pdo->prepare(
+        "INSERT INTO invoices (invoice_number, order_id, customer_id, subtotal, tax_total, grand_total, status) 
+         VALUES (?, ?, ?, ?, ?, ?, 'unpaid')"
+    );
+    $stmtInv->execute([$invoiceNum, $orderId, $_SESSION['user_id'], $grandTotal, $tax, $finalTotal]);
+    $invoiceId = $pdo->lastInsertId();
+
+    // Insert Invoice Items
+    foreach ($products as $p) {
+        $qty = $_SESSION['cart'][$p['id']];
+        $stmtInvoiceItem->execute([$invoiceId, $p['product_name'], $qty, $p['price'], ($qty * $p['price'])]);
+    }
+
+    // 7️⃣ COMMIT (SAVE EVERYTHING)
     $pdo->commit();
 
-    // 7️⃣ Clear cart
+    // 8️⃣ Clear cart
     $_SESSION['cart'] = [];
 
-    echo "<h1>Order placed successfully!</h1>";
-    echo "<p>Order ID: <strong>#{$orderId}</strong></p>";
-    echo "<p>Total Paid: ₹" . number_format($grandTotal, 2) . "</p>";
-    echo "<a href='../index.php'>Continue Shopping</a>";
+    // --- REDIRECT TO YOUR NEW SUCCESS PAGE ---
+    header("Location: order-success.php?id=" . $invoiceId);
+    exit();
 
 } catch (Exception $e) {
-    // 8️⃣ ROLLBACK (UNDO ON ERROR)
+    // 9️⃣ ROLLBACK (UNDO ON ERROR)
     $pdo->rollBack();
     die("Order failed: " . $e->getMessage());
 }

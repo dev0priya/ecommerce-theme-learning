@@ -60,14 +60,31 @@ function isFolderActive($folderName, $currentPath) {
                 </ul>
             </li>
 
-            <li class="dropdown <?= (strpos($current_path, '/orders/') || strpos($current_path, '/invoices/')) ? 'open active' : '' ?>">
+            <li class="<?= strpos($current_path, '/orders/') ? 'active' : '' ?>">
+                <a href="<?= BASE_URL ?>/orders/index.php">
+                    <iconify-icon icon="hugeicons:shopping-cart-01" class="menu-icon"></iconify-icon>
+                    <span>Orders List</span>
+                </a>
+            </li>
+
+            <li class="dropdown <?= isFolderActive('invoices', $current_path) ?>">
                 <a href="javascript:void(0)">
                     <iconify-icon icon="hugeicons:invoice-03" class="menu-icon"></iconify-icon>
-                    <span>Sales & Orders</span>
+                    <span>Invoice Management</span>
                 </a>
-                <ul class="sidebar-submenu" style="<?= (strpos($current_path, '/orders/') || strpos($current_path, '/invoices/')) ? 'display: block;' : '' ?>">
-                    <li class="<?= strpos($current_path, '/orders/') ? 'active' : '' ?>"><a href="<?= BASE_URL ?>/orders/index.php"><i class="ri-circle-fill circle-icon text-primary-600"></i> Order List</a></li>
-                    <li class="<?= strpos($current_path, '/invoices/') ? 'active' : '' ?>"><a href="<?= BASE_URL ?>/invoices/list.php"><i class="ri-circle-fill circle-icon text-info-600"></i> Invoices</a></li>
+                <ul class="sidebar-submenu" style="<?= isFolderActive('invoices', $current_path) ? 'display: block;' : '' ?>">
+                    <li class="<?= isActive('dashboard.php', $current_page) && strpos($current_path, '/invoices/') ? 'active' : '' ?>">
+                        <a href="<?= BASE_URL ?>/invoices/dashboard.php"><i class="ri-circle-fill circle-icon text-primary-600"></i> Analytics Dash</a>
+                    </li>
+                    <li class="<?= (isActive('index.php', $current_page) || isActive('list.php', $current_page)) && strpos($current_path, '/invoices/') && !isset($_GET['status']) ? 'active' : '' ?>">
+                        <a href="<?= BASE_URL ?>/invoices/index.php"><i class="ri-circle-fill circle-icon text-info-600"></i> All Invoices</a>
+                    </li>
+                    <li class="<?= isset($_GET['status']) && $_GET['status'] == 'unpaid' ? 'active' : '' ?>">
+                        <a href="<?= BASE_URL ?>/invoices/index.php?search=unpaid"><i class="ri-circle-fill circle-icon text-danger-600"></i> Pending Payments</a>
+                    </li>
+                    <li class="<?= isActive('add.php', $current_page) && strpos($current_path, '/invoices/') ? 'active' : '' ?>">
+                        <a href="<?= BASE_URL ?>/invoices/add.php"><i class="ri-circle-fill circle-icon text-success-600"></i> Create New</a>
+                    </li>
                 </ul>
             </li>
 
@@ -79,6 +96,7 @@ function isFolderActive($folderName, $currentPath) {
                     <span>Email</span>
                 </a>
             </li>
+            
             <li class="<?= isActive('chat-message.php', $current_page) ?>">
                 <a href="<?= BASE_URL ?>/chat-message.php">
                     <iconify-icon icon="bi:chat-dots" class="menu-icon"></iconify-icon>
@@ -154,6 +172,5 @@ function isFolderActive($folderName, $currentPath) {
             </li>
         </ul>
     </div>
-    
 </aside>
 <script src="<?= BASE_URL ?>/assets/js/layouts/sidebar.js"></script>

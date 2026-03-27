@@ -32,4 +32,21 @@ function generateInvoiceNumber($conn) {
     return "INV-" . date('Y') . "-" . str_pad($nextId, 3, "0", STR_PAD_LEFT);
 }
 
+// functions.php mein aise likhein:
+if (!function_exists('formatCurrency')) {
+    function formatCurrency($amount) {
+        return "₹" . number_format($amount, 2);
+    }
+}
+
+if (!function_exists('getStatusClass')) {
+    function getStatusClass($status) {
+        switch ($status) {
+            case 'paid': return 'bg-green-100 text-green-700';
+            case 'unpaid': return 'bg-amber-100 text-amber-700';
+            default: return 'bg-gray-100 text-gray-700';
+        }
+    }
+}
+
 ?>

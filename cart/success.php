@@ -9,9 +9,8 @@ if (!$tid || empty($_SESSION['cart'])) {
     exit;
 }
 
-// 1. Verify payment with Stripe (server-side)
+// 1. Verify payment with Stripe
 \Stripe\Stripe::setApiKey($_ENV['STRIPE_SECRET_KEY']);
-
 $intent = \Stripe\PaymentIntent::retrieve($tid);
 
 if ($intent->status !== 'succeeded') {
@@ -19,76 +18,52 @@ if ($intent->status !== 'succeeded') {
     exit;
 }
 
-// 2. Calculate total again (trust DB, not session)
+// 2. Calculate total
 $total = 0;
 $items = [];
-
 foreach ($_SESSION['cart'] as $pid => $qty) {
     $stmt = $pdo->prepare("SELECT product_name, price FROM products WHERE id = ?");
     $stmt->execute([$pid]);
     $product = $stmt->fetch();
 
     if ($product) {
-        $subtotal = $product['price'] * $qty;
-        $total += $subtotal;
-
-        $items[] = [
-            'id'    => $pid,
-            'qty'   => $qty,
-            'price' => $product['price'],
-        ];
+        $total += ($product['price'] * $qty);
+        $items[] = ['id' => $pid, 'name' => $product['product_name'], 'qty' => $qty, 'price' => $product['price']];
     }
 }
 
-// 3. Save order + items using transaction (ACID)
+// 3. Save order + Invoice
 $pdo->beginTransaction();
-
 try {
-    // Insert order
-    $stmt = $pdo->prepare(
-        "INSERT INTO orders (user_id, total_amount, status)
-         VALUES (?, ?, 'Pending')"
-    );
+    $stmt = $pdo->prepare("INSERT INTO orders (user_id, total_amount, status) VALUES (?, ?, 'Pending')");
     $stmt->execute([$_SESSION['user_id'], $total]);
     $order_id = $pdo->lastInsertId();
 
-    // Insert order items
-    $stmtItem = $pdo->prepare(
-        "INSERT INTO order_items (order_id, product_id, quantity, price)
-         VALUES (?, ?, ?, ?)"
-    );
-
+    $stmtItem = $pdo->prepare("INSERT INTO order_items (order_id, product_id, quantity, price) VALUES (?, ?, ?, ?)");
     foreach ($items as $item) {
-        $stmtItem->execute([
-            $order_id,
-            $item['id'],
-            $item['qty'],
-            $item['price']
-        ]);
+        $stmtItem->execute([$order_id, $item['id'], $item['qty'], $item['price']]);
+    }
+
+    // --- NEW: Generate Invoice ---
+    $invoiceNum = "INV-" . date('Y') . "-" . str_pad($order_id, 4, "0", STR_PAD_LEFT);
+    $tax = $total * 0.10;
+    $grandTotal = $total + $tax;
+
+    $stmtInv = $pdo->prepare("INSERT INTO invoices (invoice_number, order_id, customer_id, subtotal, tax_total, grand_total, status) VALUES (?, ?, ?, ?, ?, ?, 'paid')");
+    $stmtInv->execute([$invoiceNum, $order_id, $_SESSION['user_id'], $total, $tax, $grandTotal]);
+    $invoiceId = $pdo->lastInsertId();
+
+    $stmtInvItem = $pdo->prepare("INSERT INTO invoice_items (invoice_id, product_name, quantity, price_per_unit, total_price) VALUES (?, ?, ?, ?, ?)");
+    foreach ($items as $item) {
+        $stmtInvItem->execute([$invoiceId, $item['name'], $item['qty'], $item['price'], ($item['qty'] * $item['price'])]);
     }
 
     $pdo->commit();
-
-    // Clear cart
     unset($_SESSION['cart']);
-    // Send email receipt
-if (isset($_SESSION['user_email'])) {
 
-    $message = "
-        <h1>Order Receipt</h1>
-        <p>Thank you for your purchase!</p>
-        <p><strong>Transaction ID:</strong> {$tid}</p>
-        <p><strong>Total Paid:</strong> $" . number_format($total, 2) . "</p>
-        <p>Your order is now being processed.</p>
-    ";
-
-    sendEmail(
-        $_SESSION['user_email'],
-        'Your Order Receipt - My Shop',
-        $message
-    );
-}
-
+    // --- REDIRECT TO NEW SUCCESS PAGE ---
+    header("Location: order-success.php?id=" . $invoiceId);
+    exit();
 
 } catch (Exception $e) {
     $pdo->rollBack();
@@ -96,9 +71,3 @@ if (isset($_SESSION['user_email'])) {
     exit;
 }
 ?>
-
-<h1>✅ Payment Successful!</h1>
-<p>Your order has been placed successfully.</p>
-<p><strong>Transaction ID:</strong> <?= e($tid) ?></p>
-
-<a href="../index.php">Go back to shop</a>
