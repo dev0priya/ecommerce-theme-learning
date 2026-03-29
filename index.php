@@ -2,12 +2,8 @@
 // 1. Load the engine
 require 'include/load.php';
 
-/* ================================
-   PAGINATION & SEARCH LOGIC (Project A Logic Preserved)
-================================ */
 $limit = 12; 
 $page  = isset($_GET['page']) && is_numeric($_GET['page']) ? (int)$_GET['page'] : 1;
-$page  = max($page, 1);
 $offset = ($page - 1) * $limit;
 $search = $_GET['q'] ?? '';
 
@@ -34,93 +30,147 @@ if ($search) {
 $products = $stmt->fetchAll();
 $total_pages = ceil($total_items / $limit);
 
-// Include updated Head and Header
 include 'partials/header.php'; 
 ?>
 
-<div class="dashboard-main-body">
+<style>
+    :root {
+        --pop-indigo: #6366f1;
+        --pop-purple: #a855f7;
+        --pop-emerald: #10b981;
+        --pop-rose: #f43f5e; /* Wishlist Color */
+        --slate-900: #0f172a;
+        --bg-soft: #fbfdff;
+    }
+
+    body { background: var(--bg-soft); font-family: 'Inter', sans-serif; }
+    .dashboard-main-body { padding: 40px; }
+
+    /* Product Card Pop Style */
+    .product-card {
+        background: white;
+        border-radius: 2.3rem;
+        border: 1px solid #f1f5f9;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        position: relative;
+    }
+    .product-card:hover {
+        transform: translateY(-12px) scale(1.02);
+        box-shadow: 0 30px 60px -12px rgba(15, 23, 42, 0.12);
+    }
+
+    .img-container {
+        aspect-ratio: 1/1;
+        border-radius: 1.8rem;
+        margin: 10px;
+        overflow: hidden;
+        background: #f8fafc;
+        border: 1px solid #f1f5f9;
+        position: relative;
+    }
+
+    /* WISHLIST ICON STYLE */
+    .wishlist-btn {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        width: 42px;
+        height: 42px;
+        background: white;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #cbd5e1;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        transition: all 0.3s ease;
+        border: none;
+        cursor: pointer;
+        z-index: 10;
+    }
+    .wishlist-btn:hover {
+        color: var(--pop-rose);
+        transform: scale(1.1);
+        box-shadow: 0 8px 20px rgba(244, 63, 94, 0.2);
+    }
+    .wishlist-btn.active {
+        color: var(--pop-rose);
+    }
+
+    .btn-cart-pop {
+        background: linear-gradient(135deg, var(--pop-indigo) 0%, var(--pop-purple) 100%);
+        color: white;
+        padding: 12px;
+        border-radius: 14px;
+        font-weight: 800;
+        border: none;
+        cursor: pointer;
+        transition: 0.3s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        width: 100%;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        box-shadow: 0 8px 15px rgba(99, 102, 241, 0.2);
+    }
+    .btn-cart-pop:hover {
+        filter: brightness(1.1);
+        box-shadow: 0 12px 20px rgba(99, 102, 241, 0.3);
+    }
+</style>
+
+<div class="dashboard-main-body antialiased">
     
-    <div class="card mb-6 border-0 shadow-sm">
-        <div class="card-body p-6">
-            <form action="index.php" method="GET" class="flex items-center gap-3">
-                <div class="relative grow">
-                    <input type="text" name="q" placeholder="Search products..." value="<?= e($search) ?>" 
-                           class="form-control ps-11 bg-neutral-50 dark:bg-neutral-800 border-neutral-200 dark:border-neutral-700 rounded-lg py-3">
-                    <iconify-icon icon="ion:search-outline" class="absolute start-4 top-1/2 -translate-y-1/2 text-xl text-secondary-light"></iconify-icon>
-                </div>
-                <button type="submit" class="btn btn-primary-600 px-8 py-3 rounded-lg font-semibold transition-all">Search</button>
-                <?php if ($search): ?>
-                    <a href="index.php" class="text-danger-600 font-medium hover:underline">Clear</a>
-                <?php endif; ?>
-            </form>
-        </div>
+    <div class="mb-12">
+        <span class="text-indigo-600 font-black text-[10px] uppercase tracking-[0.3em] block mb-1">Curated Collection</span>
+        <h1 class="text-4xl font-black text-slate-900 tracking-tighter">Premium Masterpieces</h1>
     </div>
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:col-span-3 gap-6">
-        <?php if ($products): ?>
-            <?php foreach ($products as $p): ?>
-                <div class="card h-full rounded-xl border-0 shadow-sm hover:shadow-md transition-all group overflow-hidden bg-white dark:bg-neutral-700">
-                    <div class="relative overflow-hidden aspect-[4/3] bg-neutral-100">
-                        <img src="assets/uploads/<?= e($p['image']) ?>" 
-                             class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
-                        
-                        <div class="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                             <button onclick="addToCart(<?= $p['id'] ?>)" class="w-10 h-10 bg-white text-primary-600 rounded-full flex items-center justify-center shadow-lg hover:bg-primary-600 hover:text-white transition-all">
-                                <iconify-icon icon="majesticons:shopping-cart" class="text-xl"></iconify-icon>
-                             </button>
-                        </div>
-                    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+        <?php foreach ($products as $p): ?>
+            <div class="product-card">
+                <button class="wishlist-btn" onclick="toggleWishlist(<?= $p['id'] ?>, this)">
+                    <iconify-icon icon="solar:heart-bold-duotone" class="text-2xl"></iconify-icon>
+                </button>
 
-                    <div class="card-body p-5">
-                        <h6 class="text-lg font-bold text-neutral-900 dark:text-white mb-1 truncate"><?= e($p['product_name']) ?></h6>
-                        <div class="flex items-center justify-between mt-3">
-                            <span class="text-xl font-bold text-primary-600">$<?= number_format($p['price'], 2) ?></span>
-                            <span class="text-xs font-medium text-secondary-light bg-neutral-100 dark:bg-neutral-600 px-2 py-1 rounded">In Stock</span>
+                <div class="img-container">
+                    <img src="assets/uploads/<?= e($p['image']) ?>" class="w-full h-full object-cover">
+                </div>
+
+                <div class="p-5 pt-2 flex-grow flex flex-col justify-between">
+                    <div>
+                        <h6 class="text-lg font-black text-slate-800 truncate mb-1"><?= e($p['product_name']) ?></h6>
+                        <div class="flex justify-between items-center mb-5">
+                            <span class="text-2xl font-black text-emerald-600 tracking-tight">₹<?= number_format($p['price'], 2) ?></span>
+                            <span class="text-[9px] font-black uppercase text-slate-400 bg-slate-50 px-2 py-1 rounded-md">New Arrival</span>
                         </div>
                     </div>
+                    
+                    <button onclick="addToCart(<?= $p['id'] ?>)" class="btn-cart-pop">
+                        <iconify-icon icon="solar:cart-large-minimalistic-bold-duotone" class="text-xl"></iconify-icon>
+                        Add To Cart
+                    </button>
                 </div>
-            <?php endforeach; ?>
-        <?php else: ?>
-            <div class="col-span-full py-20 text-center">
-                <iconify-icon icon="line-md:search-list-twotone" class="text-6xl text-neutral-300 mb-4"></iconify-icon>
-                <p class="text-secondary-light text-lg">No products found matching your search.</p>
             </div>
-        <?php endif; ?>
+        <?php endforeach; ?>
     </div>
-
-    <?php if ($total_pages > 1): ?>
-    <div class="flex justify-center mt-10">
-        <nav aria-label="Page navigation">
-            <ul class="flex items-center gap-2">
-                <?php if ($page > 1): ?>
-                    <li>
-                        <a href="index.php?page=<?= $page - 1 ?><?= $search ? '&q=' . urlencode($search) : '' ?>" 
-                           class="w-10 h-10 flex items-center justify-center rounded-lg border border-neutral-200 dark:border-neutral-700 text-secondary-light hover:bg-primary-600 hover:text-white transition-all">
-                            <iconify-icon icon="solar:alt-arrow-left-linear"></iconify-icon>
-                        </a>
-                    </li>
-                <?php endif; ?>
-
-                <li class="px-4 py-2 bg-primary-50 dark:bg-primary-600/20 text-primary-600 rounded-lg font-bold">
-                    Page <?= $page ?> of <?= $total_pages ?>
-                </li>
-
-                <?php if ($page < $total_pages): ?>
-                    <li>
-                        <a href="index.php?page=<?= $page + 1 ?><?= $search ? '&q=' . urlencode($search) : '' ?>" 
-                           class="w-10 h-10 flex items-center justify-center rounded-lg border border-neutral-200 dark:border-neutral-700 text-secondary-light hover:bg-primary-600 hover:text-white transition-all">
-                            <iconify-icon icon="solar:alt-arrow-right-linear"></iconify-icon>
-                        </a>
-                    </li>
-                <?php endif; ?>
-            </ul>
-        </nav>
-    </div>
-    <?php endif; ?>
-
 </div>
 
 <script>
+function toggleWishlist(id, btn) {
+    // Frontend par heart color change karne ke liye
+    btn.classList.toggle('active');
+    
+    // Yahan aap apna backend API call add kar sakte hain wishlist save karne ke liye
+    // console.log("Added to wishlist:", id);
+}
+
 function addToCart(productId) {
     fetch('api/cart/add.php', {
         method: 'POST',
@@ -130,8 +180,6 @@ function addToCart(productId) {
     .then(res => res.json())
     .then(data => {
         if (data.status === 'success') {
-            // Use a nice toast if Project B has one, else alert
-            alert('Added to cart!');
             location.reload();
         }
     });
