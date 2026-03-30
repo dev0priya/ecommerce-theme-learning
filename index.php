@@ -1,31 +1,24 @@
 <?php
-// 1. Load the engine
 require 'include/load.php';
 
-$limit = 12; 
+// --- CONFIGURATION & LOGIC ---
+$limit = 12;
 $page  = isset($_GET['page']) && is_numeric($_GET['page']) ? (int)$_GET['page'] : 1;
 $offset = ($page - 1) * $limit;
 $search = $_GET['q'] ?? '';
 
-if ($search) {
-    $countStmt = $pdo->prepare("SELECT COUNT(*) FROM products WHERE product_name LIKE ?");
-    $countStmt->execute(["%$search%"]);
-    $total_items = $countStmt->fetchColumn();
+$baseQuery = "FROM products WHERE product_name LIKE ?";
+$params = ["%$search%"];
 
-    $stmt = $pdo->prepare("SELECT * FROM products WHERE product_name LIKE ? ORDER BY created_at DESC LIMIT ? OFFSET ?");
-    $stmt->bindValue(1, "%$search%", PDO::PARAM_STR);
-    $stmt->bindValue(2, $limit, PDO::PARAM_INT);
-    $stmt->bindValue(3, $offset, PDO::PARAM_INT);
-    $stmt->execute();
-} else {
-    $countStmt = $pdo->query("SELECT COUNT(*) FROM products");
-    $total_items = $countStmt->fetchColumn();
+$countStmt = $pdo->prepare("SELECT COUNT(*) $baseQuery");
+$countStmt->execute($params);
+$total_items = $countStmt->fetchColumn();
 
-    $stmt = $pdo->prepare("SELECT * FROM products ORDER BY created_at DESC LIMIT ? OFFSET ?");
-    $stmt->bindValue(1, $limit, PDO::PARAM_INT);
-    $stmt->bindValue(2, $offset, PDO::PARAM_INT);
-    $stmt->execute();
-}
+$stmt = $pdo->prepare("SELECT * $baseQuery ORDER BY created_at DESC LIMIT ? OFFSET ?");
+$stmt->bindValue(1, $params[0], PDO::PARAM_STR);
+$stmt->bindValue(2, $limit, PDO::PARAM_INT);
+$stmt->bindValue(3, $offset, PDO::PARAM_INT);
+$stmt->execute();
 
 $products = $stmt->fetchAll();
 $total_pages = ceil($total_items / $limit);
@@ -33,155 +26,324 @@ $total_pages = ceil($total_items / $limit);
 include 'partials/header.php'; 
 ?>
 
+<!-- ✅ Iconify FIX -->
+<script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+
 <style>
-    :root {
-        --pop-indigo: #6366f1;
-        --pop-purple: #a855f7;
-        --pop-emerald: #10b981;
-        --pop-rose: #f43f5e; /* Wishlist Color */
-        --slate-900: #0f172a;
-        --bg-soft: #fbfdff;
-    }
+:root {
+    --p-indigo: #6366f1;
+    --p-indigo-dark: #4f46e5;
+    --p-rose: #f43f5e;
+    --p-dark: #0f172a;
+    --p-border: #e2e8f0;
+}
 
-    body { background: var(--bg-soft); font-family: 'Inter', sans-serif; }
-    .dashboard-main-body { padding: 40px; }
+/* BASE */
+body {
+    background-color: #f8fafc;
+    font-family: 'Inter', sans-serif;
+}
 
-    /* Product Card Pop Style */
-    .product-card {
-        background: white;
-        border-radius: 2.3rem;
-        border: 1px solid #f1f5f9;
-        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
-        position: relative;
-    }
-    .product-card:hover {
-        transform: translateY(-12px) scale(1.02);
-        box-shadow: 0 30px 60px -12px rgba(15, 23, 42, 0.12);
-    }
+.main-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 50px 20px;
+}
 
-    .img-container {
-        aspect-ratio: 1/1;
-        border-radius: 1.8rem;
-        margin: 10px;
-        overflow: hidden;
-        background: #f8fafc;
-        border: 1px solid #f1f5f9;
-        position: relative;
-    }
+/* SEARCH */
+.search-section {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 50px;
+}
 
-    /* WISHLIST ICON STYLE */
-    .wishlist-btn {
-        position: absolute;
-        top: 15px;
-        right: 15px;
-        width: 42px;
-        height: 42px;
-        background: white;
-        border-radius: 14px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #cbd5e1;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-        transition: all 0.3s ease;
-        border: none;
-        cursor: pointer;
-        z-index: 10;
-    }
-    .wishlist-btn:hover {
-        color: var(--pop-rose);
-        transform: scale(1.1);
-        box-shadow: 0 8px 20px rgba(244, 63, 94, 0.2);
-    }
-    .wishlist-btn.active {
-        color: var(--pop-rose);
-    }
+.search-input-group {
+    position: relative;
+    width: 100%;
+    max-width: 500px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+    border-radius: 50px;
+}
 
-    .btn-cart-pop {
-        background: linear-gradient(135deg, var(--pop-indigo) 0%, var(--pop-purple) 100%);
-        color: white;
-        padding: 12px;
-        border-radius: 14px;
-        font-weight: 800;
-        border: none;
-        cursor: pointer;
-        transition: 0.3s;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 10px;
-        width: 100%;
-        font-size: 0.75rem;
-        text-transform: uppercase;
-        letter-spacing: 0.1em;
-        box-shadow: 0 8px 15px rgba(99, 102, 241, 0.2);
-    }
-    .btn-cart-pop:hover {
-        filter: brightness(1.1);
-        box-shadow: 0 12px 20px rgba(99, 102, 241, 0.3);
-    }
+.search-input-group input {
+    width: 100%;
+    padding: 15px 25px 15px 50px;
+    border-radius: 50px;
+    border: 1px solid var(--p-border);
+    outline: none;
+    transition: 0.3s;
+}
+
+.search-input-group input:focus {
+    border-color: var(--p-indigo);
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
+}
+
+.search-icon {
+    position: absolute;
+    left: 20px;
+    top: 17px;
+    color: #94a3b8;
+    font-size: 20px;
+}
+
+/* GRID */
+.p-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 35px;
+}
+
+/* CARD */
+.p-card {
+    background: white;
+    border-radius: 30px;
+    padding: 12px;
+    border: 1px solid var(--p-border);
+    transition: 0.4s;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+.p-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 25px 50px rgba(99, 102, 241, 0.15);
+    border-color: var(--p-indigo);
+}
+
+/* IMAGE */
+.p-img-box {
+    width: 100%;
+    aspect-ratio: 1/1;
+    border-radius: 22px;
+    overflow: hidden;
+    background: linear-gradient(135deg, #eef2ff, #f8fafc);
+}
+
+.p-img-box img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: 0.5s;
+}
+
+.p-card:hover .p-img-box img {
+    transform: scale(1.08);
+}
+
+/* ❤️ WISHLIST */
+.wish-btn {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    z-index: 10;
+
+    width: 44px;
+    height: 44px;
+
+    background: rgba(255,255,255,0.9);
+    backdrop-filter: blur(10px);
+
+    border: 1px solid #e5e7eb;
+    border-radius: 50%;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    cursor: pointer;
+    transition: 0.3s;
+
+    box-shadow: 0 6px 15px rgba(0,0,0,0.08);
+}
+
+.wish-btn iconify-icon {
+    color: #64748b;
+    font-size: 22px;
+    transition: 0.3s;
+}
+
+.wish-btn:hover {
+    border-color: var(--p-rose);
+    transform: scale(1.1);
+}
+
+.wish-btn:hover iconify-icon {
+    color: var(--p-rose);
+}
+
+.wish-btn.active {
+    background: var(--p-rose);
+    border-color: var(--p-rose);
+}
+
+.wish-btn.active iconify-icon {
+    color: #fff;
+}
+
+/* CONTENT */
+.p-content {
+    padding: 15px 5px;
+    text-align: center;
+    flex-grow: 1;
+}
+
+.p-name {
+    font-weight: 800;
+    color: var(--p-dark);
+    font-size: 1.1rem;
+}
+
+.p-price {
+    font-weight: 900;
+    color: var(--p-indigo);
+    font-size: 1.4rem;
+    margin: 10px 0;
+}
+
+/* 🛒 BUTTON */
+.add-btn {
+    width: 100%;
+    padding: 12px;
+    border-radius: 18px;
+    border: none;
+    font-weight: 700;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+
+    background: linear-gradient(135deg, var(--p-indigo), var(--p-indigo-dark));
+    color: white;
+
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.add-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 25px rgba(99, 102, 241, 0.3);
+}
+
+/* PAGINATION */
+.pagination-wrap {
+    display: flex;
+    justify-content: center;
+    margin-top: 60px;
+    gap: 10px;
+}
+
+.page-link {
+    width: 45px;
+    height: 45px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: white;
+    border: 1px solid var(--p-border);
+    border-radius: 12px;
+
+    text-decoration: none;
+    color: var(--p-dark);
+    font-weight: 700;
+    transition: 0.3s;
+}
+
+.page-link:hover,
+.page-link.active {
+    background: var(--p-indigo);
+    color: white;
+    border-color: var(--p-indigo);
+}
 </style>
 
-<div class="dashboard-main-body antialiased">
-    
-    <div class="mb-12">
-        <span class="text-indigo-600 font-black text-[10px] uppercase tracking-[0.3em] block mb-1">Curated Collection</span>
-        <h1 class="text-4xl font-black text-slate-900 tracking-tighter">Premium Masterpieces</h1>
+<div class="main-container">
+    <div class="search-section">
+        <form action="" method="GET" class="search-input-group">
+            <iconify-icon icon="lucide:search" class="search-icon"></iconify-icon>
+            <input type="text" name="q" placeholder="Search..." value="<?= e($search) ?>">
+        </form>
     </div>
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+    <div class="p-grid">
         <?php foreach ($products as $p): ?>
-            <div class="product-card">
-                <button class="wishlist-btn" onclick="toggleWishlist(<?= $p['id'] ?>, this)">
-                    <iconify-icon icon="solar:heart-bold-duotone" class="text-2xl"></iconify-icon>
+            <div class="p-card">
+                <button class="wish-btn" data-product-id="<?= $p['id'] ?>">
+                    <iconify-icon icon="solar:heart-linear"></iconify-icon>
                 </button>
 
-                <div class="img-container">
-                    <img src="assets/uploads/<?= e($p['image']) ?>" class="w-full h-full object-cover">
+                <div class="p-img-box">
+                    <img src="assets/uploads/<?= e($p['image']) ?>" alt="<?= e($p['product_name']) ?>">
                 </div>
 
-                <div class="p-5 pt-2 flex-grow flex flex-col justify-between">
-                    <div>
-                        <h6 class="text-lg font-black text-slate-800 truncate mb-1"><?= e($p['product_name']) ?></h6>
-                        <div class="flex justify-between items-center mb-5">
-                            <span class="text-2xl font-black text-emerald-600 tracking-tight">₹<?= number_format($p['price'], 2) ?></span>
-                            <span class="text-[9px] font-black uppercase text-slate-400 bg-slate-50 px-2 py-1 rounded-md">New Arrival</span>
-                        </div>
-                    </div>
-                    
-                    <button onclick="addToCart(<?= $p['id'] ?>)" class="btn-cart-pop">
-                        <iconify-icon icon="solar:cart-large-minimalistic-bold-duotone" class="text-xl"></iconify-icon>
-                        Add To Cart
+                <div class="p-content">
+                    <h3 class="p-name"><?= e($p['product_name']) ?></h3>
+                    <span class="p-price">₹<?= number_format($p['price'], 2) ?></span>
+
+                    <button onclick="addToCart(<?= $p['id'] ?>)" class="add-btn">
+                        <iconify-icon icon="solar:cart-large-minimalistic-bold"></iconify-icon>
+                        Add to Cart
                     </button>
                 </div>
             </div>
         <?php endforeach; ?>
     </div>
+
+    <?php if ($total_pages > 1): ?>
+    <div class="pagination-wrap">
+        <?php for ($i = 1; $i <= $total_pages; $i++): ?>
+            <a href="?page=<?= $i ?>&q=<?= urlencode($search) ?>" 
+               class="page-link <?= ($page == $i) ? 'active' : '' ?>">
+                <?= $i ?>
+            </a>
+        <?php endfor; ?>
+    </div>
+    <?php endif; ?>
 </div>
 
 <script>
-function toggleWishlist(id, btn) {
-    // Frontend par heart color change karne ke liye
-    btn.classList.toggle('active');
-    
-    // Yahan aap apna backend API call add kar sakte hain wishlist save karne ke liye
-    // console.log("Added to wishlist:", id);
-}
+const BASE_URL = '<?= BASE_URL ?>';
 
-function addToCart(productId) {
-    fetch('api/cart/add.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: productId })
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.status === 'success') {
-            location.reload();
-        }
+$(document).ready(function() {
+    $('.wish-btn').on('click', function() {
+        const btn = $(this);
+        const pid = btn.data('product-id');
+
+        $.ajax({
+            url: BASE_URL + '/actions/wishlist_add.php',
+            method: 'POST',
+            data: { product_id: pid },
+            dataType: 'json',
+            success: function(res) {
+                if (res.status === 'success') {
+                    btn.addClass('active');
+                    btn.find('iconify-icon').attr('icon', 'solar:heart-bold');
+
+                    Swal.fire({
+                        toast: true,
+                        position: 'top-end',
+                        icon: 'success',
+                        title: 'Saved to Wishlist',
+                        showConfirmButton: false,
+                        timer: 2000
+                    });
+                }
+            }
+        });
+    });
+});
+
+function addToCart(id) {
+    Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'success',
+        title: 'Added to cart successfully',
+        showConfirmButton: false,
+        timer: 1500
     });
 }
 </script>
