@@ -3598,7 +3598,7 @@ svg.radial-progress text.percentage {
 }
 
 .w-full{
-  width: 100%;
+  width: 75%;
 }
 
 .w-\[40px\]{
@@ -8898,4 +8898,14 @@ h6, .h6 {
     padding-left: 76px;
     padding-right: 76px;
   }
+}
+
+/* Fix content spacing */
+.dashboard-content {
+    padding: 20px;
+}
+
+/* Remove unwanted top gap */
+.dashboard-main-body {
+    margin-top: 0 !important;
 }

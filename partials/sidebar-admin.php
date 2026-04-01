@@ -18,14 +18,14 @@ function isFolderActive($folderName, $currentPath) {
 <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/layouts/sidebar.css">
 <link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet">
 
-<aside class="sidebar">
-    <button type="button" class="sidebar-close-btn !mt-4">
+<aside class="sidebar bg-white dark:bg-neutral-800 border-r border-neutral-200 dark:border-neutral-700">
+    <button type="button" class="sidebar-close-btn !mt-4 text-neutral-600 dark:text-neutral-400">
         <iconify-icon icon="radix-icons:cross-2"></iconify-icon>
     </button>
     
-    <div class="sidebar-logo">
+    <div class="sidebar-logo border-b border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800">
         <a href="<?= BASE_URL ?>/dashboard.php" class="flex items-center">
-            <img src="<?= BASE_URL ?>/assets/uploads/<?= getSetting('site_logo', $pdo); ?>" alt="site logo" class="light-logo w-10 h-10">
+            <img src="<?= BASE_URL ?>/assets/uploads/<?= getSetting('site_logo', $pdo); ?>" alt="site logo" class="w-10 h-10 object-contain">
             <span class="text-xl font-bold text-neutral-900 dark:text-white ms-2">Admin Panel</span>
         </a>
     </div>

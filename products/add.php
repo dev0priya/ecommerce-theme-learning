@@ -5,7 +5,7 @@ checkLogin();
 $title = 'Create Masterpiece';
 $subTitle = 'E-Commerce / Inventory';
 
-// Form Logic (Stable PHP - No Changes)
+// FORM LOGIC
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $product_name = $_POST['product_name'];
     $price = $_POST['price'];
@@ -25,188 +25,184 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $categories = $pdo->query("SELECT * FROM categories ORDER BY name ASC")->fetchAll();
+
+/* ✅ ONLY THIS (HEADER + SIDEBAR FROM LAYOUT) */
 include '../partials/layouts/layoutTop.php'; 
 ?>
 
-<style>
-    :root {
-        --pop-indigo: #6366f1;
-        --pop-purple: #a855f7;
-        --slate-900: #0f172a;
-        --bg-soft: #f8fafc;
-    }
+<link rel="stylesheet" href="../assets/css/pages/product-style.css">
 
-    .dashboard-main-body { background: var(--bg-soft); min-height: 100vh; }
+<div class="dashboard-main-body premium-gradient-bg px-10 py-12">
 
-    /* Compact Cards */
-    .vibrant-card-pop {
-        background: white;
-        border-radius: 1.5rem;
-        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
-        border: 1px solid #f1f5f9;
-        overflow: hidden;
-    }
-
-    /* Input Field Pop */
-    .pop-input-styled {
-        width: 100%;
-        padding: 10px 15px;
-        background: #f8fafc;
-        border: 2px solid transparent;
-        border-radius: 12px;
-        font-weight: 700;
-        color: var(--slate-900);
-        outline: none;
-        transition: 0.2s;
-    }
-    .pop-input-styled:focus {
-        background: white;
-        border-color: var(--pop-indigo);
-        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.1);
-    }
-
-    /* Primary Pop Button */
-    .btn-create-pop {
-        background: linear-gradient(135deg, var(--pop-indigo) 0%, var(--pop-purple) 100%);
-        color: white;
-        padding: 12px 25px;
-        border-radius: 12px;
-        font-weight: 800;
-        font-size: 0.85rem;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        border: none;
-        cursor: pointer;
-        transition: 0.3s;
-        box-shadow: 0 8px 15px rgba(99, 102, 241, 0.3);
-    }
-    .btn-create-pop:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 12px 20px rgba(99, 102, 241, 0.4);
-    }
-
-    /* Upload Area Styling */
-    .upload-box {
-        border: 2px dashed #e2e8f0;
-        border-radius: 1.25rem;
-        background: #fbfdff;
-        transition: 0.3s;
-    }
-    .upload-box:hover { border-color: var(--pop-indigo); background: #f8fafc; }
-
-    /* Glass Status Badge */
-    .status-glass-mini {
-        background: linear-gradient(135deg, var(--pop-indigo), var(--pop-purple));
-        color: white;
-        padding: 15px;
-        border-radius: 1.25rem;
-        box-shadow: 0 10px 20px rgba(99, 102, 241, 0.2);
-    }
-</style>
-
-<div class="dashboard-main-body px-6 py-8">
     <form action="add.php" method="POST" enctype="multipart/form-data">
         
-        <div class="flex items-center justify-between mb-8 max-w-5xl mx-auto">
+        <!-- HEADER SECTION -->
+        <div class="flex items-center justify-between mb-12">
             <div>
-                <span class="text-indigo-600 font-black text-[9px] uppercase tracking-widest block mb-1">Creation Mode</span>
-                <h1 class="text-3xl font-black text-slate-900 tracking-tight">New Masterpiece</h1>
+                <span class="text-indigo-600 font-black text-[10px] uppercase tracking-[0.4em] mb-1 block">
+                    Creation Mode
+                </span>
+
+                <h1 class="text-4xl font-black bg-clip-text text-transparent 
+                    bg-gradient-to-r from-indigo-600 to-purple-600 tracking-tight">
+                    New Masterpiece
+                </h1>
+
+                <p class="text-slate-400 font-bold text-[10px] uppercase tracking-[0.3em] mt-2 ml-1">
+                    E-Commerce Catalog • 2026
+                </p>
             </div>
-            <div class="flex items-center gap-4">
-                <a href="index.php" class="text-slate-400 font-bold text-xs uppercase hover:text-rose-500 transition-colors">Discard</a>
-                <button type="submit" class="btn-create-pop">
-                    <iconify-icon icon="solar:magic-stick-3-bold-duotone" class="text-xl"></iconify-icon>
+
+            <div class="flex items-center gap-6">
+                <a href="index.php" 
+                   class="text-slate-400 font-black text-sm hover:text-red-500 transition-colors">
+                    Discard
+                </a>
+
+                <button type="submit" class="btn-pop flex items-center gap-3 shadow-2xl">
+                    <iconify-icon icon="solar:magic-stick-3-bold-duotone" class="text-2xl"></iconify-icon>
                     Create Product
                 </button>
             </div>
         </div>
 
-        <div class="grid grid-cols-12 gap-6 max-w-5xl mx-auto">
+        <!-- GRID -->
+        <div class="grid grid-cols-12 gap-10">
+
+            <!-- LEFT -->
             <div class="col-span-12 lg:col-span-8">
-                <div class="vibrant-card-pop p-6 border-t-8 border-indigo-600">
-                    <h4 class="text-lg font-black text-slate-800 mb-6 flex items-center gap-2">
-                        <iconify-icon icon="solar:info-circle-bold-duotone" class="text-indigo-600"></iconify-icon>
-                        Product Details
+                <div class="vibrant-card p-10 border-t-4 border-indigo-600">
+
+                    <h4 class="text-xl font-black text-slate-800 mb-10 flex items-center gap-3">
+                        <span class="w-2 h-8 bg-indigo-600 rounded-full"></span>
+                        Core Information
                     </h4>
 
-                    <div class="space-y-5">
+                    <div class="space-y-8">
+
+                        <!-- PRODUCT NAME -->
                         <div>
-                            <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Product Title</label>
-                            <input type="text" name="product_name" class="pop-input-styled text-sm" placeholder="Premium item name..." required>
+                            <label class="block text-[11px] font-black text-slate-400 uppercase tracking-widest mb-3 ml-2">
+                                Product Title
+                            </label>
+
+                            <input type="text" name="product_name"
+                                   class="pop-input w-full text-lg"
+                                   placeholder="e.g. Premium Leather Jacket" required>
                         </div>
 
-                        <div class="grid grid-cols-2 gap-4">
+                        <!-- PRICE + CATEGORY -->
+                        <div class="grid grid-cols-2 gap-8">
+
                             <div>
-                                <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Price ($)</label>
-                                <input type="number" step="0.01" name="price" class="pop-input-styled text-base font-black text-indigo-600" placeholder="0.00" required>
+                                <label class="block text-[11px] font-black text-slate-400 uppercase tracking-widest mb-3 ml-2">
+                                    Price ($)
+                                </label>
+
+                                <div class="relative">
+                                    <span class="absolute left-6 top-1/2 -translate-y-1/2 text-indigo-600 font-black">$</span>
+
+                                    <input type="number" step="0.01" name="price"
+                                           class="pop-input w-full pl-10 font-black text-slate-800 text-2xl"
+                                           placeholder="0.00" required>
+                                </div>
                             </div>
+
                             <div>
-                                <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Category</label>
-                                <select name="category_id" class="pop-input-styled text-sm font-bold cursor-pointer" required>
+                                <label class="block text-[11px] font-black text-slate-400 uppercase tracking-widest mb-3 ml-2">
+                                    Category
+                                </label>
+
+                                <select name="category_id"
+                                        class="pop-input w-full font-bold cursor-pointer appearance-none" required>
+
                                     <option value="">Select Category</option>
+
                                     <?php foreach ($categories as $cat): ?>
-                                        <option value="<?= $cat['id'] ?>"><?= e($cat['name']) ?></option>
+                                        <option value="<?= $cat['id'] ?>">
+                                            <?= e($cat['name']) ?>
+                                        </option>
                                     <?php endforeach; ?>
+
                                 </select>
                             </div>
+
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div class="col-span-12 lg:col-span-4 space-y-6">
-                <div class="vibrant-card-pop p-6">
-                    <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 text-center">Visual Asset</h4>
-                    <div class="upload-box relative p-6 text-center group cursor-pointer overflow-hidden">
-                        <input type="file" name="image" id="imgInput" class="absolute inset-0 opacity-0 z-30 cursor-pointer" accept="image/*">
-                        
-                        <div id="placeholderView" class="py-4">
-                            <iconify-icon icon="solar:gallery-add-bold-duotone" class="text-4xl text-indigo-400 mb-2"></iconify-icon>
-                            <p class="text-[9px] font-black text-slate-500 uppercase">Attach Product Image</p>
+            <!-- RIGHT -->
+            <div class="col-span-12 lg:col-span-4 space-y-8">
+
+                <!-- IMAGE -->
+                <div class="vibrant-card p-8">
+
+                    <h4 class="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-6 text-center">
+                        Product Visual
+                    </h4>
+
+                    <div class="upload-vibrant relative p-10 text-center group cursor-pointer overflow-hidden rounded-3xl shadow-inner">
+
+                        <input type="file" name="image" id="imgInput"
+                               class="absolute inset-0 opacity-0 z-30 cursor-pointer" accept="image/*">
+
+                        <div id="placeholderView" class="py-10">
+                            <div class="w-16 h-16 bg-white rounded-2xl shadow-lg flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-all duration-500">
+                                <iconify-icon icon="solar:gallery-add-bold-duotone" class="text-3xl text-indigo-600"></iconify-icon>
+                            </div>
+                            <p class="text-[11px] font-black text-slate-700 uppercase">Drop Image Here</p>
                         </div>
 
                         <div id="previewContainer" class="hidden relative z-20">
-                            <img id="imgPreview" src="#" class="w-full h-32 object-cover rounded-xl shadow-lg border-2 border-white">
-                            <button type="button" onclick="resetImage()" class="absolute -top-2 -right-2 bg-rose-500 text-white w-6 h-6 rounded-full shadow-lg flex items-center justify-center text-xs font-black hover:bg-slate-900 transition-all">×</button>
+                            <img id="imgPreview" src="#"
+                                 class="w-full h-56 object-cover rounded-2xl shadow-2xl border-4 border-white">
+
+                            <button type="button" onclick="resetImage()"
+                                    class="absolute -top-3 -right-3 bg-white text-red-500 w-8 h-8 rounded-full shadow-2xl flex items-center justify-center font-black hover:bg-red-500 hover:text-white transition-all">
+                                ×
+                            </button>
                         </div>
                     </div>
                 </div>
 
-                <div class="status-glass-mini relative overflow-hidden">
-                    <div class="relative z-10 flex items-center gap-3">
-                        <div class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse shadow-[0_0_8px_#34d399]"></div>
-                        <div>
-                            <h5 class="font-black text-sm text-white">Online Ready</h5>
-                            <p class="text-[9px] text-indigo-100/70 font-medium">Auto-sync with storefront</p>
-                        </div>
+                <!-- STATUS -->
+                <div class="status-glass shadow-indigo-200 shadow-2xl">
+                    <div class="relative z-10">
+                        <h5 class="font-black text-lg text-white">Online Ready</h5>
+                        <p class="text-[10px] text-indigo-200/60 mt-2 font-medium">
+                            Auto-sync with global storefront enabled.
+                        </p>
                     </div>
                 </div>
+
             </div>
         </div>
+
     </form>
+
 </div>
 
 <script>
-    const imgInput = document.getElementById('imgInput');
-    const imgPreview = document.getElementById('imgPreview');
-    const previewContainer = document.getElementById('previewContainer');
-    const placeholderView = document.getElementById('placeholderView');
+const imgInput = document.getElementById('imgInput');
+const imgPreview = document.getElementById('imgPreview');
+const previewContainer = document.getElementById('previewContainer');
+const placeholderView = document.getElementById('placeholderView');
 
-    imgInput.onchange = evt => {
-        const [file] = imgInput.files;
-        if (file) {
-            imgPreview.src = URL.createObjectURL(file);
-            previewContainer.classList.remove('hidden');
-            placeholderView.classList.add('hidden');
-        }
+imgInput.onchange = evt => {
+    const [file] = imgInput.files;
+    if (file) {
+        imgPreview.src = URL.createObjectURL(file);
+        previewContainer.classList.remove('hidden');
+        placeholderView.classList.add('hidden');
     }
+}
 
-    function resetImage() {
-        imgInput.value = "";
-        previewContainer.classList.add('hidden');
-        placeholderView.classList.remove('hidden');
-    }
+function resetImage() {
+    imgInput.value = "";
+    previewContainer.classList.add('hidden');
+    placeholderView.classList.remove('hidden');
+}
 </script>
 
 <?php include '../partials/layouts/layoutBottom.php'; ?>
