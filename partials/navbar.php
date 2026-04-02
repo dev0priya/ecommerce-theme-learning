@@ -78,7 +78,7 @@
                         <span class="font-medium text-sm" style="color: #1e293b !important;">Inbox</span>
                     </a>
 
-                    <a href="<?= BASE_URL ?>company.php" class="flex items-center gap-3 px-4 py-3 hover:bg-gray-100 rounded-lg transition-colors group text-decoration-none">
+                    <a href="<?= BASE_URL ?>settings/company.php" class="flex items-center gap-3 px-4 py-3 hover:bg-gray-100 rounded-lg transition-colors group text-decoration-none">
                         <i class="ri-settings-4-line text-lg" style="color: #64748b !important;"></i>
                         <span class="font-medium text-sm" style="color: #1e293b !important;">Setting</span>
                     </a>
