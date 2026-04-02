@@ -1,12 +1,10 @@
 <nav class="h-[70px] flex items-center justify-between px-6 bg-[#1e293b] border-b border-slate-700 transition-colors duration-300">
     
-    <!-- LEFT -->
     <div class="flex items-center gap-6 flex-1">
         <button class="text-slate-400 hover:text-white">
             <i class="ri-menu-2-line text-2xl"></i>
         </button>
         
-        <!-- SEARCH -->
         <div class="flex items-center gap-3 w-full max-w-[450px]">
             <input type="text" 
                    placeholder="Search" 
@@ -18,102 +16,80 @@
         </div>
     </div>
 
-    <!-- RIGHT -->
     <div class="flex items-center gap-4">
         
-        <!-- THEME -->
         <button type="button" id="theme-toggle" class="w-10 h-10 flex items-center justify-center rounded-full bg-slate-800/80 border border-slate-700">
             <iconify-icon id="theme-icon" icon="ri:moon-line" class="text-lg"></iconify-icon>
         </button>
 
-        <!-- FLAG -->
         <div class="relative">
             <button data-dropdown-toggle="langDropdown" class="w-10 h-10 flex items-center justify-center rounded-full bg-slate-800/80 overflow-hidden border border-slate-700">
                 <img id="selectedFlag" src="https://flagcdn.com/w40/us.png" class="w-7 h-5 object-cover">
             </button>
-
-            <!-- 🔥 UPDATED DROPDOWN -->
-            <div id="langDropdown" class="hidden absolute right-0 mt-2 w-72 bg-white dark:bg-slate-800 text-black dark:text-white rounded-lg shadow-lg p-3 z-50 max-h-64 overflow-y-auto">
-
-                <button onclick="changeFlag('us')" class="flex items-center gap-3 w-full px-3 py-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded">
+            <div id="langDropdown" class="hidden absolute right-0 mt-4 w-72 bg-white dark:bg-slate-800 text-black dark:text-white rounded-lg shadow-lg p-3 z-50 border border-gray-200 dark:border-slate-700">
+                <button onclick="changeFlag('us')" class="flex items-center gap-3 w-full px-3 py-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded text-black dark:text-white">
                     <img src="https://flagcdn.com/w40/us.png" class="w-6 h-4">
                     <span>English (US)</span>
                 </button>
-
-                <button onclick="changeFlag('in')" class="flex items-center gap-3 w-full px-3 py-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded">
-                    <img src="https://flagcdn.com/w40/in.png" class="w-6 h-4">
-                    <span>India</span>
-                </button>
-
-                <button onclick="changeFlag('gb')" class="flex items-center gap-3 w-full px-3 py-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded">
-                    <img src="https://flagcdn.com/w40/gb.png" class="w-6 h-4">
-                    <span>United Kingdom</span>
-                </button>
-
-                <button onclick="changeFlag('fr')" class="flex items-center gap-3 w-full px-3 py-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded">
-                    <img src="https://flagcdn.com/w40/fr.png" class="w-6 h-4">
-                    <span>France</span>
-                </button>
-
-                <button onclick="changeFlag('de')" class="flex items-center gap-3 w-full px-3 py-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded">
-                    <img src="https://flagcdn.com/w40/de.png" class="w-6 h-4">
-                    <span>Germany</span>
-                </button>
-
-                <button onclick="changeFlag('jp')" class="flex items-center gap-3 w-full px-3 py-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded">
-                    <img src="https://flagcdn.com/w40/jp.png" class="w-6 h-4">
-                    <span>Japan</span>
-                </button>
-
-                <button onclick="changeFlag('kr')" class="flex items-center gap-3 w-full px-3 py-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded">
-                    <img src="https://flagcdn.com/w40/kr.png" class="w-6 h-4">
-                    <span>Korea</span>
-                </button>
-
-                <button onclick="changeFlag('bd')" class="flex items-center gap-3 w-full px-3 py-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded">
-                    <img src="https://flagcdn.com/w40/bd.png" class="w-6 h-4">
-                    <span>Bangladesh</span>
-                </button>
-
-                <button onclick="changeFlag('ae')" class="flex items-center gap-3 w-full px-3 py-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded">
-                    <img src="https://flagcdn.com/w40/ae.png" class="w-6 h-4">
-                    <span>UAE</span>
-                </button>
-
             </div>
         </div>
 
-        <!-- MAIL -->
         <div class="relative">
             <button id="mail-btn" data-dropdown-toggle="messageDropdown" class="w-10 h-10 flex items-center justify-center rounded-full bg-slate-800/80 border border-slate-700">
                 <i class="ri-mail-line text-lg"></i>
             </button>
-
-            <div id="messageDropdown" class="hidden absolute right-0 mt-2 w-64 bg-white dark:bg-slate-800 text-black dark:text-white rounded-lg shadow-lg p-3 z-50">
-                No messages
-            </div>
+            <div id="messageDropdown" class="hidden absolute right-0 mt-4 w-64 bg-white dark:bg-slate-800 text-black dark:text-white rounded-lg shadow-lg p-3 z-50">No messages</div>
         </div>
 
-        <!-- NOTIFICATION -->
         <div class="relative">
             <button id="bell-btn" data-dropdown-toggle="notificationDropdown" class="w-10 h-10 flex items-center justify-center rounded-full bg-slate-800/80 border border-slate-700">
                 <i class="ri-notification-3-line text-lg"></i>
             </button>
-
-            <div id="notificationDropdown" class="hidden absolute right-0 mt-2 w-64 bg-white dark:bg-slate-800 text-black dark:text-white rounded-lg shadow-lg p-3 z-50">
-                No notifications
-            </div>
+            <div id="notificationDropdown" class="hidden absolute right-0 mt-4 w-64 bg-white dark:bg-slate-800 text-black dark:text-white rounded-lg shadow-lg p-3 z-50">No notifications</div>
         </div>
 
-        <!-- PROFILE -->
         <div class="relative flex items-center ml-2 border-l border-slate-700 pl-4">
-            <button id="profile-btn" data-dropdown-toggle="profileDropdown" class="w-10 h-10 bg-gray-400 rounded-full flex items-center justify-center text-[9px] font-bold uppercase">
-                40X40
+            <button id="profile-btn" data-dropdown-toggle="profileDropdown" class="w-10 h-10 rounded-full overflow-hidden border border-slate-600 focus:ring-2 focus:ring-blue-500 transition-all flex items-center justify-center bg-slate-700">
+                <img src="<?= BASE_URL ?>assets/uploads/user-icon.jpg" alt="User Profile" class="min-w-full min-h-full w-full h-full object-cover block">
             </button>
 
-            <div id="profileDropdown" class="hidden absolute right-0 mt-2 w-48 bg-white dark:bg-slate-800 text-black dark:text-white rounded-lg shadow-lg p-2 z-50">
-                <a href="#" class="block px-3 py-2 hover:bg-slate-100 dark:hover:bg-slate-700">Profile</a>
-                <a href="#" class="block px-3 py-2 hover:bg-slate-100 dark:hover:bg-slate-700">Settings</a>
+            <div id="profileDropdown" class="hidden absolute right-0 top-[calc(100%+2rem)] w-64 rounded-xl shadow-2xl z-[9999] overflow-hidden border border-gray-200" style="background-color: white !important; display: none;">
+                
+                <div class="p-4" style="background-color: #3b4b70 !important; color: white !important;">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h6 class="font-bold text-lg mb-0 leading-none" style="color: white !important; margin: 0;">Shahidul Islam</h6>
+                            <span class="text-xs" style="color: #cbd5e1 !important;">Admin</span>
+                        </div>
+                        <button onclick="document.getElementById('profileDropdown').classList.add('hidden')" style="color: white !important; background: transparent; border: none;">
+                            <i class="ri-close-line text-xl"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="p-2" style="background-color: white !important;">
+                    <a href="<?= BASE_URL ?>view-myprofile.php" class="flex items-center gap-3 px-4 py-3 hover:bg-gray-100 rounded-lg transition-colors group text-decoration-none">
+                        <i class="ri-user-line text-lg" style="color: #64748b !important;"></i>
+                        <span class="font-medium text-sm" style="color: #1e293b !important;">My Profile</span>
+                    </a>
+
+                    <a href="#" class="flex items-center gap-3 px-4 py-3 hover:bg-gray-100 rounded-lg transition-colors group text-decoration-none">
+                        <i class="ri-mail-line text-lg" style="color: #64748b !important;"></i>
+                        <span class="font-medium text-sm" style="color: #1e293b !important;">Inbox</span>
+                    </a>
+
+                    <a href="<?= BASE_URL ?>company.php" class="flex items-center gap-3 px-4 py-3 hover:bg-gray-100 rounded-lg transition-colors group text-decoration-none">
+                        <i class="ri-settings-4-line text-lg" style="color: #64748b !important;"></i>
+                        <span class="font-medium text-sm" style="color: #1e293b !important;">Setting</span>
+                    </a>
+
+                    <hr class="my-2 border-gray-100">
+
+                    <a href="<?= BASE_URL ?>logout.php" class="flex items-center gap-3 px-4 py-3 hover:bg-red-50 rounded-lg transition-colors group text-decoration-none">
+                        <i class="ri-logout-box-r-line text-lg" style="color: #dc2626 !important;"></i>
+                        <span class="font-medium text-sm" style="color: #dc2626 !important;">Log Out</span>
+                    </a>
+                </div>
             </div>
         </div>
 
@@ -121,12 +97,12 @@
 </nav>
 
 <script>
-// THEME
+// THEME LOGIC
 const html = document.documentElement;
 const toggleBtn = document.getElementById("theme-toggle");
 const themeIcon = document.getElementById("theme-icon");
 
-const icons = [
+const iconsToColor = [
     document.querySelector("#search-btn i"),
     document.querySelector("#mail-btn i"),
     document.querySelector("#bell-btn i")
@@ -137,17 +113,17 @@ function applyTheme(theme) {
         html.classList.add("dark");
         html.classList.remove("light");
         themeIcon.setAttribute("icon", "ri:sun-line");
-        icons.forEach(i => i.style.color = "#ffffff");
+        iconsToColor.forEach(i => { if(i) i.style.color = "#ffffff"; });
     } else {
         html.classList.remove("dark");
         html.classList.add("light");
         themeIcon.setAttribute("icon", "ri:moon-line");
-        icons.forEach(i => i.style.color = "#000000");
+        iconsToColor.forEach(i => { if(i) i.style.color = "#000000"; });
     }
 }
 
-const saved = localStorage.getItem("theme") || "light";
-applyTheme(saved);
+const savedTheme = localStorage.getItem("theme") || "light";
+applyTheme(savedTheme);
 
 toggleBtn.addEventListener("click", () => {
     const newTheme = html.classList.contains("dark") ? "light" : "dark";
@@ -155,25 +131,37 @@ toggleBtn.addEventListener("click", () => {
     applyTheme(newTheme);
 });
 
-// FLAG
-function changeFlag(code) {
-    document.getElementById("selectedFlag").src = `https://flagcdn.com/w40/${code}.png`;
-}
-
-// DROPDOWN
+// DROPDOWN TOGGLE
 document.querySelectorAll('[data-dropdown-toggle]').forEach(btn => {
-    btn.addEventListener('click', function () {
-        const target = document.getElementById(this.getAttribute('data-dropdown-toggle'));
+    btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        const targetId = this.getAttribute('data-dropdown-toggle');
+        const target = document.getElementById(targetId);
+        
         document.querySelectorAll('[id$="Dropdown"]').forEach(d => {
             if (d !== target) d.classList.add('hidden');
         });
-        target.classList.toggle('hidden');
+        
+        if (target.classList.contains('hidden')) {
+            target.classList.remove('hidden');
+            target.style.display = 'block';
+        } else {
+            target.classList.add('hidden');
+            target.style.display = 'none';
+        }
     });
 });
 
 document.addEventListener('click', function (e) {
-    if (!e.target.closest('[data-dropdown-toggle]')) {
-        document.querySelectorAll('[id$="Dropdown"]').forEach(d => d.classList.add('hidden'));
+    if (!e.target.closest('.relative')) {
+        document.querySelectorAll('[id$="Dropdown"]').forEach(d => {
+            d.classList.add('hidden');
+            d.style.display = 'none';
+        });
     }
 });
+
+function changeFlag(code) {
+    document.getElementById("selectedFlag").src = `https://flagcdn.com/w40/${code}.png`;
+}
 </script>
