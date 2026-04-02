@@ -2,7 +2,7 @@
 require '../include/load.php'; 
 checkLogin(); 
 
-// Stats Queries - NO CHANGES
+// 1. Stats Queries
 $rev_query = $pdo->query("SELECT SUM(grand_total) as total FROM invoices WHERE status = 'paid'")->fetch();
 $revenue = $rev_query['total'] ?? 0;
 
@@ -12,7 +12,8 @@ $pending = $pend_query['total'] ?? 0;
 $count_query = $pdo->query("SELECT COUNT(id) as count FROM invoices")->fetch();
 $inv_count = $count_query['count'] ?? 0;
 
-$limit = 7;
+// 2. Pagination Logic - CHANGED LIMIT TO 12
+$limit = 12; 
 $total_rows = $pdo->query("SELECT COUNT(id) FROM invoices")->fetchColumn();
 $total_pages = ceil($total_rows / $limit);
 
@@ -21,161 +22,158 @@ include '../partials/layouts/layoutTop.php';
 ?>
 
 <style>
-    :root {
-        --pop-indigo: #6366f1;
-        --pop-emerald: #10b981;
-        --pop-rose: #f43f5e;
-        --slate-900: #0f172a;
+    /* Full Screen & Layout Fix */
+    .dashboard-main-body { 
+        background: #f8fafc; 
+        min-height: 100vh; 
+        display: flex;
+        flex-direction: column;
+        transition: 0.3s; 
+    }
+    .dark .dashboard-main-body { background: #020617; }
+
+    .dashboard-content-wrapper {
+        padding: 30px;
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        width: 100%;
     }
 
-    .dashboard-main-body { background: #f8fafc; min-height: 100vh; }
-
-    /* Highlighted Stat Cards */
+    /* Stat Cards Styling */
     .stat-card-pop {
         background: white;
         padding: 25px;
-        border-radius: 24px;
-        border: 1px solid #f1f5f9;
-        position: relative;
-        overflow: hidden;
-        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
+        border-radius: 20px;
+        border: 1px solid #e2e8f0;
+        transition: all 0.3s ease;
     }
+    .dark .stat-card-pop { background: #0f172a; border-color: #1e293b; }
+    .stat-card-pop:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
 
-    .stat-card-pop:hover {
-        transform: translateY(-8px);
-        box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.1);
-    }
+    .accent-revenue { border-top: 4px solid #10b981; }
+    .accent-pending { border-top: 4px solid #f43f5e; }
+    .accent-total { border-top: 4px solid #6366f1; }
 
-    /* Vibrant Accents for Each Box */
-    .accent-revenue { border-bottom: 6px solid var(--pop-emerald); }
-    .accent-pending { border-bottom: 6px solid var(--pop-rose); }
-    .accent-total { border-bottom: 6px solid var(--pop-indigo); }
-
-    /* Icon Background Pop */
     .icon-circle {
-        width: 45px;
-        height: 45px;
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin-bottom: 15px;
+        width: 45px; height: 45px; border-radius: 12px;
+        display: flex; align-items: center; justify-content: center;
+        margin-bottom: 15px; font-size: 20px;
     }
     .bg-revenue { background: #d1fae5; color: #059669; }
     .bg-pending { background: #fee2e2; color: #dc2626; }
     .bg-total { background: #e0e7ff; color: #4f46e5; }
 
+    /* Main Activity Container */
+    .activity-container {
+        background: white;
+        border-radius: 20px;
+        border: 1px solid #e2e8f0;
+        padding: 25px;
+        flex-grow: 1;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+    .dark .activity-container { background: #0f172a; border-color: #1e293b; }
+
+    /* Table Styling */
+    .premium-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    .premium-table th {
+        text-align: left; padding: 15px 20px; font-size: 11px;
+        font-weight: 800; text-transform: uppercase; color: #94a3b8;
+        border-bottom: 1px solid #f1f5f9;
+    }
+    .dark .premium-table th { border-bottom-color: #1e293b; }
+    
+    .premium-table td { padding: 15px 20px; border-bottom: 1px solid #f1f5f9; }
+    .dark .premium-table td { border-bottom-color: #1e293b; }
+
+    .amount-text { font-weight: 900; color: #1e293b; }
+    .dark .amount-text { color: #ffffff !important; }
+
     /* Status Badges */
-    .status-pill {
-        padding: 5px 12px;
-        border-radius: 10px;
-        font-size: 10px;
-        font-weight: 900;
-        text-transform: uppercase;
-        display: inline-block;
+    .status-badge {
+        padding: 5px 12px; border-radius: 8px; font-size: 10px;
+        font-weight: 900; text-transform: uppercase; display: inline-block;
     }
-    .status-paid { background: #d1fae5; color: #065f46; }
-    .status-unpaid { background: #fee2e2; color: #991b1b; }
+    .st-paid { background: #d1fae5; color: #065f46; }
+    .st-unpaid { background: #fee2e2; color: #991b1b; }
+    .st-pending { background: #fef3c7; color: #92400e; }
+    .st-cancelled { background: #dbba72; color: #475569; }
+    
+    .dark .st-paid { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+    .dark .st-unpaid { background: rgba(239, 68, 68, 0.2); color: #f87171; }
 
-    /* --- PAGINATION STYLING (ACTIVE & HOVER) --- */
+    /* Pagination */
     .page-btn {
-        cursor: pointer;
-        border: none;
-        outline: none;
-        transition: all 0.3s ease;
+        width: 35px; height: 35px; border-radius: 10px; border: none;
+        font-weight: 800; cursor: pointer; transition: 0.3s;
     }
-
-    /* Inactive State Hover */
-    .page-btn.bg-slate-50:hover {
-        background-color: var(--pop-indigo) !important;
-        color: white !important;
-        transform: translateY(-3px);
-        box-shadow: 0 8px 15px rgba(99, 102, 241, 0.2);
-    }
-
-    /* Active State (Current Page) */
-    .page-btn-active {
-        background-color: var(--slate-900) !important;
-        color: white !important;
-        box-shadow: 0 10px 20px rgba(15, 23, 42, 0.2);
-        transform: translateY(-2px);
-    }
-
+    .page-btn-inactive { background: #f1f5f9; color: #64748b; }
+    .dark .page-btn-inactive { background: #1e293b; color: #94a3b8; }
+    .page-btn-active { background: #6366f1 !important; color: white !important; }
 </style>
 
-<div class="dashboard-main-body px-8 py-10">
-    <div class="flex items-center justify-between mb-10">
-        <div>
-            <h1 class="text-3xl font-black text-slate-900 tracking-tight">Financial Overview</h1>
-            <p class="text-slate-400 font-bold text-xs uppercase tracking-widest mt-1">Project A Real-time Stats</p>
+<div class="dashboard-main-body">
+    <div class="dashboard-content-wrapper">
+        
+        <div class="flex flex-col md:flex-row justify-between items-end mb-8 gap-4">
+            <div>
+                <h1 class="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Finance Dashboard</h1>
+                <p class="text-xs text-slate-400 font-bold uppercase tracking-widest mt-1">Project A Performance</p>
+            </div>
+            <a href="add.php" class="bg-indigo-600 text-white px-6 py-3 rounded-xl text-xs font-black shadow-lg transition-all flex items-center gap-2">
+                <iconify-icon icon="solar:add-circle-bold"></iconify-icon>
+                NEW INVOICE
+            </a>
         </div>
-        <a href="add.php" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl text-xs font-black shadow-lg shadow-indigo-200 transition-all flex items-center gap-2">
-            <iconify-icon icon="solar:add-circle-bold" class="text-xl"></iconify-icon>
-            NEW INVOICE
-        </a>
-    </div>
 
-    <div class="grid grid-cols-12 gap-6 mb-10">
-        <div class="col-span-12 md:col-span-4">
-            <div class="stat-card-pop accent-revenue">
-                <div class="icon-circle bg-revenue">
-                    <iconify-icon icon="solar:round-alt-arrow-up-bold" class="text-2xl"></iconify-icon>
+        <div class="grid grid-cols-12 gap-6 mb-8">
+            <div class="col-span-12 md:col-span-4 stat-card-pop accent-revenue">
+                <div class="icon-circle bg-revenue"><iconify-icon icon="solar:round-alt-arrow-up-bold"></iconify-icon></div>
+                <p class="text-[10px] font-black text-slate-400 uppercase">Revenue</p>
+                <p class="text-2xl font-black text-emerald-600 dark:text-emerald-500">₹<?= number_format($revenue, 2) ?></p>
+            </div>
+            <div class="col-span-12 md:col-span-4 stat-card-pop accent-pending">
+                <div class="icon-circle bg-pending"><iconify-icon icon="solar:danger-circle-bold"></iconify-icon></div>
+                <p class="text-[10px] font-black text-slate-400 uppercase">Pending</p>
+                <p class="text-2xl font-black text-rose-600 dark:text-rose-500">₹<?= number_format($pending, 2) ?></p>
+            </div>
+            <div class="col-span-12 md:col-span-4 stat-card-pop accent-total">
+                <div class="icon-circle bg-total"><iconify-icon icon="solar:bill-list-bold"></iconify-icon></div>
+                <p class="text-[10px] font-black text-slate-400 uppercase">Total Invoices</p>
+                <p class="text-2xl font-black text-indigo-600 dark:text-indigo-400"><?= $inv_count ?></p>
+            </div>
+        </div>
+
+        <div class="activity-container">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-lg font-black text-slate-800 dark:text-white uppercase tracking-wider">Recent Activity</h2>
+                <div class="flex gap-2">
+                    <?php for($i = 1; $i <= min($total_pages, 5); $i++): ?>
+                        <button onclick="changePage(<?= $i ?>, this)" class="page-btn transition-all <?= ($i==1)?'page-btn-active':'page-btn-inactive' ?>">
+                            <?= $i ?>
+                        </button>
+                    <?php endfor; ?>
                 </div>
-                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Revenue</p>
-                <p class="text-3xl font-black text-emerald-600 mt-1">₹<?= number_format($revenue, 2) ?></p>
             </div>
-        </div>
 
-        <div class="col-span-12 md:col-span-4">
-            <div class="stat-card-pop accent-pending">
-                <div class="icon-circle bg-pending">
-                    <iconify-icon icon="solar:danger-circle-bold" class="text-2xl"></iconify-icon>
-                </div>
-                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Pending Balance</p>
-                <p class="text-3xl font-black text-rose-600 mt-1">₹<?= number_format($pending, 2) ?></p>
+            <div class="overflow-x-auto">
+                <table class="premium-table">
+                    <thead>
+                        <tr>
+                            <th>Invoice #</th>
+                            <th>Customer</th>
+                            <th class="text-right">Grand Total</th>
+                            <th class="text-center">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="invoice-rows">
+                        <?php include 'fetch_dash_data.php'; ?>
+                    </tbody>
+                </table>
             </div>
-        </div>
-
-        <div class="col-span-12 md:col-span-4">
-            <div class="stat-card-pop accent-total">
-                <div class="icon-circle bg-total">
-                    <iconify-icon icon="solar:bill-list-bold" class="text-2xl"></iconify-icon>
-                </div>
-                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Invoices</p>
-                <p class="text-3xl font-black text-indigo-600 mt-1"><?= $inv_count ?></p>
-            </div>
-        </div>
-    </div>
-
-    <div class="bg-white rounded-[2rem] shadow-sm border border-slate-100 p-8">
-        <div class="flex items-center justify-between mb-8">
-            <h2 class="text-xl font-black text-slate-800">Recent Activity</h2>
-            <div class="flex gap-2">
-                <?php for($i = 1; $i <= min($total_pages, 5); $i++): ?>
-                    <button onclick="changePage(<?= $i ?>, this)" class="page-btn w-9 h-9 rounded-xl font-black text-xs transition-all <?= ($i==1)?'page-btn-active':'bg-slate-50 text-slate-400' ?>">
-                        <?= $i ?>
-                    </button>
-                <?php endfor; ?>
-            </div>
-        </div>
-
-        <div class="overflow-x-auto">
-            <table class="w-full text-left">
-                <thead>
-                    <tr class="text-slate-400 text-[10px] font-black uppercase tracking-widest border-b border-slate-50">
-                        <th class="px-6 py-4">Invoice #</th>
-                        <th class="px-6 py-4">Customer</th>
-                        <th class="px-6 py-4 text-right">Amount</th>
-                        <th class="px-6 py-4 text-center">Status</th>
-                    </tr>
-                </thead>
-                <tbody id="invoice-rows" class="divide-y divide-slate-50">
-                    <?php include 'fetch_dash_data.php'; ?>
-                </tbody>
-            </table>
         </div>
     </div>
 </div>
@@ -189,14 +187,12 @@ function changePage(page, btn) {
         .then(html => {
             rows.innerHTML = html;
             rows.style.opacity = '1';
-            
-            // Sabhi buttons ki class reset karo
             document.querySelectorAll('.page-btn').forEach(b => {
-                b.className = 'page-btn w-9 h-9 rounded-xl font-black text-xs transition-all bg-slate-50 text-slate-400';
+                b.classList.remove('page-btn-active');
+                b.classList.add('page-btn-inactive');
             });
-            
-            // Click kiye gaye button ko Active class do
-            btn.className = 'page-btn w-9 h-9 rounded-xl font-black text-xs transition-all page-btn-active';
+            btn.classList.remove('page-btn-inactive');
+            btn.classList.add('page-btn-active');
         });
 }
 </script>

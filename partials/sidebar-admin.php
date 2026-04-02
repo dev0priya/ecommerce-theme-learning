@@ -151,14 +151,14 @@ function isFolderActive($folderName, $currentPath) {
             </li>
 
             <li class="<?= isActive('faq.php', $current_page) ?>">
-                <a href="<?= BASE_URL ?>/faq.php">
+                <a href="<?= BASE_URL ?>pages/faq.php">
                     <iconify-icon icon="mage:message-question-mark-round" class="menu-icon"></iconify-icon>
                     <span>FAQs & Support</span>
                 </a>
             </li>
 
             <li class="<?= isActive('error.php', $current_page) ?>">
-                <a href="<?= BASE_URL ?>/error.php">
+                <a href="<?= BASE_URL ?>pages/error.php">
                     <iconify-icon icon="streamline:straight-face" class="menu-icon"></iconify-icon>
                     <span>404 Error Page</span>
                 </a>

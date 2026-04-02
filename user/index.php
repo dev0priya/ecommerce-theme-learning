@@ -1,92 +1,214 @@
-<?php
-require '../include/load.php';
-checkLogin();
+<?php 
+require '../include/load.php'; 
+checkLogin(); 
 
-// 1. Fetch all users from Database (Project A Logic)
-$stmt = $pdo->query("SELECT * FROM users ORDER BY created_at DESC");
+// 1. Pagination & Fetch Logic (12 Rows Limit)
+$limit = 12;
+$page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+$offset = ($page - 1) * $limit;
+
+$total_rows = $pdo->query("SELECT COUNT(*) FROM users")->fetchColumn();
+$total_pages = ceil($total_rows / $limit);
+
+$stmt = $pdo->prepare("SELECT * FROM users ORDER BY created_at DESC LIMIT :limit OFFSET :offset");
+$stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+$stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+$stmt->execute();
 $users = $stmt->fetchAll();
 
-include '../partials/header.php';
+$title = 'User Directory';
+include '../partials/layouts/layoutTop.php'; 
 ?>
 
-<div class="flex min-h-screen">
-    <?php 
-    // Automated Sidebar selection
-    if ($_SESSION['user_role'] === 'admin') {
-        include '../partials/sidebar-admin.php';
-    } else {
-        include '../partials/sidebar-user.php';
+<style>
+    /* Global Adaptive Background */
+    .dashboard-main-body { background: #f8fafc; min-height: 100vh; transition: 0.3s; }
+    .dark .dashboard-main-body { background: #020617; }
+
+    /* Premium Content Card */
+    .user-card-container {
+        background: white;
+        border-radius: 32px;
+        border: 1px solid #e2e8f0;
+        padding: 40px;
+        width: 100%;
+        min-height: 800px;
+        display: flex;
+        flex-direction: column;
+        transition: 0.3s;
     }
-    ?>
+    .dark .user-card-container { background: #0f172a; border-color: #1e293b; }
 
-    <main class="dashboard-main flex-grow-1">
-        <div class="dashboard-main-body p-6">
+    /* --- REGISTER BUTTON VISIBILITY --- */
+    .btn-register-adaptive {
+        background: #6366f1;
+        color: #000000 !important; /* Black text for Light Theme */
+        padding: 16px 32px;
+        border-radius: 16px;
+        font-weight: 900;
+        font-size: 12px;
+        letter-spacing: 1px;
+        box-shadow: 0 10px 20px rgba(99, 102, 241, 0.2);
+        transition: 0.3s;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    .dark .btn-register-adaptive {
+        color: #ffffff !important; /* White text for Dark Theme */
+        background: #4f46e5;
+    }
+
+    /* --- TABLE STYLING --- */
+    .user-table { width: 100%; border-collapse: collapse; }
+    .table-th {
+        padding: 20px;
+        font-size: 11px;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        color: #94a3b8;
+        border-bottom: 1px solid #f1f5f9;
+    }
+    .dark .table-th { border-bottom-color: #1e293b; }
+    
+    .table-td {
+        padding: 18px 20px;
+        border-bottom: 1px solid #f8fafc;
+        vertical-align: middle;
+    }
+    .dark .table-td { border-bottom-color: #1e293b; }
+
+    /* --- AVATAR & ACTION CENTERING (FIXED) --- */
+    .user-avatar {
+        width: 45px;
+        height: 45px;
+        border-radius: 14px;
+        display: flex;             /* Flexbox for centering */
+        align-items: center;       /* Vertical center */
+        justify-content: center;    /* Horizontal center */
+        font-weight: 900;
+        font-size: 18px;
+        background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+        color: white;
+    }
+
+    .btn-circle-action {
+        width: 38px;
+        height: 38px;
+        border-radius: 12px;
+        display: flex;             /* Flexbox for centering */
+        align-items: center;       /* Vertical center */
+        justify-content: center;    /* Horizontal center */
+        transition: 0.3s;
+        font-size: 18px;
+        border: none;
+    }
+
+    /* Role Badges */
+    .role-badge {
+        padding: 6px 14px; border-radius: 10px; font-size: 10px;
+        font-weight: 900; text-transform: uppercase; display: inline-block;
+    }
+    .role-admin { background: #f5f3ff; color: #7c3aed; border: 1px solid #ddd6fe; }
+    .role-user { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
+    .dark .role-admin { background: rgba(124, 58, 237, 0.15); color: #a78bfa; border-color: rgba(167, 139, 250, 0.2); }
+    .dark .role-user { background: rgba(22, 163, 74, 0.15); color: #4ade80; border-color: rgba(74, 222, 128, 0.2); }
+
+    .btn-edit { background: #f1f5f9; color: #6366f1; }
+    .dark .btn-edit { background: #1e293b; color: #818cf8; }
+    .btn-delete { background: #fff1f2; color: #f43f5e; }
+    .dark .btn-delete { background: rgba(244, 63, 94, 0.1); color: #fb7185; }
+
+    /* Pagination */
+    .page-btn {
+        width: 40px; height: 40px; border-radius: 12px; font-weight: 800; transition: 0.3s;
+        display: flex; align-items: center; justify-content: center;
+    }
+    .page-active { background: #6366f1; color: white !important; }
+    .page-inactive { background: #f1f5f9; color: #64748b; }
+    .dark .page-inactive { background: #1e293b; color: #94a3b8; }
+</style>
+
+<div class="dashboard-main-body px-6 py-10 lg:px-10">
+    <div class="user-card-container shadow-xl">
+        
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-12 gap-6">
+            <div>
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="w-10 h-1 bg-indigo-600 rounded-full"></span>
+                    <span class="text-[10px] font-black uppercase tracking-[3px] text-indigo-600">Access Control</span>
+                </div>
+                <h1 class="text-4xl font-black text-slate-900 dark:text-white tracking-tighter">User Management</h1>
+                <p class="text-slate-400 dark:text-slate-500 font-bold text-xs uppercase tracking-widest mt-1">Total Members: <?= $total_rows ?></p>
+            </div>
             
-            <div class="card-header border-b border-neutral-200 dark:border-neutral-600 bg-white dark:bg-neutral-700 py-4 px-6 flex items-center flex-wrap gap-3 justify-between rounded-t-xl">
-                <div class="flex items-center flex-wrap gap-3">
-                    <h5 class="text-xl font-bold text-neutral-900 dark:text-white mb-0">Manage Users</h5>
-                </div>
-                <a href="add.php" class="btn btn-primary text-sm btn-sm px-3 py-3 rounded-lg flex items-center gap-2">
-                    <iconify-icon icon="ic:baseline-plus" class="icon text-xl line-height-1"></iconify-icon>
-                    Add New User
-                </a>
-            </div>
-
-            <div class="card h-full p-0 rounded-b-xl border-0 overflow-hidden shadow-sm">
-                <div class="card-body p-6">
-                    <div class="table-responsive scroll-sm">
-                        <table class="table bordered-table sm-table mb-0">
-                            <thead>
-                                <tr>
-                                    <th scope="col">User Info</th>
-                                    <th scope="col">Email</th>
-                                    <th scope="col" class="text-center">Role</th>
-                                    <th scope="col" class="text-center">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php foreach ($users as $u): ?>
-                                <tr>
-                                    <td>
-                                        <div class="flex items-center">
-                                            <div class="w-10 h-10 rounded-full shrink-0 me-2 bg-primary-100 flex items-center justify-center text-primary-600 font-bold">
-                                                <?= strtoupper(substr($u['name'], 0, 1)) ?>
-                                            </div>
-                                            <div class="grow">
-                                                <span class="text-base mb-0 font-semibold text-neutral-800 dark:text-white"><?= e($u['name']) ?></span>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td><span class="text-secondary-light"><?= e($u['email']) ?></span></td>
-                                    <td class="text-center">
-                                        <?php 
-                                            $roleClass = ($u['role'] === 'admin') ? 'bg-purple-100 text-purple-600 border-purple-600' : 'bg-success-100 text-success-600 border-success-600';
-                                        ?>
-                                        <span class="<?= $roleClass ?> border px-4 py-1 rounded-full font-medium text-xs">
-                                            <?= ucfirst(e($u['role'])) ?>
-                                        </span>
-                                    </td>
-                                    <td class="text-center">
-                                        <div class="flex items-center gap-3 justify-center">
-                                            <a href="edit.php?id=<?= $u['id'] ?>" 
-                                               class="bg-success-100 dark:bg-success-600/25 text-success-600 dark:text-success-400 bg-hover-success-200 font-medium w-10 h-10 flex justify-center items-center rounded-full">
-                                                <iconify-icon icon="lucide:edit" class="icon text-xl"></iconify-icon>
-                                            </a>
-                                            <button type="button" onclick="deleteItem(<?= $u['id'] ?>, 'users')"
-                                                    class="bg-danger-100 dark:bg-danger-600/25 hover:bg-danger-200 text-danger-600 dark:text-danger-500 font-medium w-10 h-10 flex justify-center items-center rounded-full">
-                                                <iconify-icon icon="fluent:delete-24-regular" class="icon text-xl"></iconify-icon>
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <?php endforeach; ?>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
+            <a href="add.php" class="btn-register-adaptive">
+                <iconify-icon icon="solar:user-plus-bold" class="text-xl"></iconify-icon>
+                REGISTER NEW USER
+            </a>
         </div>
-        <?php include '../partials/footer.php'; ?>
-    </main>
+
+        <div class="overflow-x-auto flex-grow">
+            <table class="user-table">
+                <thead>
+                    <tr>
+                        <th class="table-th text-left">Identity</th>
+                        <th class="table-th text-left">Email Address</th>
+                        <th class="table-th text-center">Security Role</th>
+                        <th class="table-th text-left">Created At</th>
+                        <th class="table-th text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($users as $u): ?>
+                    <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-all">
+                        <td class="table-td">
+                            <div class="flex items-center gap-4">
+                                <div class="user-avatar">
+                                    <?= strtoupper(substr($u['name'] ?? 'U', 0, 1)) ?>
+                                </div>
+                                <div>
+                                    <span class="block font-black text-slate-800 dark:text-white text-sm"><?= e($u['name']) ?></span>
+                                    <span class="text-[10px] text-slate-400 font-black uppercase">UID: <?= $u['id'] ?></span>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="table-td text-sm font-bold text-slate-500 dark:text-slate-400">
+                            <?= e($u['email']) ?>
+                        </td>
+                        <td class="table-td text-center">
+                            <span class="role-badge <?= ($u['role'] === 'admin') ? 'role-admin' : 'role-user' ?>">
+                                <?= e($u['role']) ?>
+                            </span>
+                        </td>
+                        <td class="table-td text-xs font-black text-slate-400 uppercase tracking-tighter">
+                            <?= date('d M, Y', strtotime($u['created_at'])) ?>
+                        </td>
+                        <td class="table-td">
+                            <div class="flex items-center justify-end gap-3">
+                                <a href="edit.php?id=<?= $u['id'] ?>" class="btn-circle-action btn-edit" title="Edit Profile">
+                                    <iconify-icon icon="solar:pen-new-square-bold-duotone"></iconify-icon>
+                                </a>
+                                <button type="button" onclick="deleteItem(<?= $u['id'] ?>, 'users')" class="btn-circle-action btn-delete" title="Remove User">
+                                    <iconify-icon icon="solar:trash-bin-minimalistic-bold-duotone"></iconify-icon>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="mt-12 flex justify-center items-center gap-2">
+            <?php for($i = 1; $i <= $total_pages; $i++): ?>
+                <a href="?page=<?= $i ?>" class="page-btn <?= ($i == $page) ? 'page-active' : 'page-inactive' ?>">
+                    <?= $i ?>
+                </a>
+            <?php endfor; ?>
+        </div>
+    </div>
 </div>
+
+<?php include '../partials/layouts/layoutBottom.php'; ?>

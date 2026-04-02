@@ -2,184 +2,214 @@
 require '../include/load.php';
 checkLogin();
 
-$title  = getSetting('site_title', $pdo);
-$email  = getSetting('contact_email', $pdo);
-$footer = getSetting('footer_text', $pdo);
+// Fetching Settings from ecommerce_db
+$title_val  = getSetting('site_title', $pdo);
+$email_val  = getSetting('contact_email', $pdo);
+$footer_val = getSetting('footer_text', $pdo);
+$logo_val   = getSetting('site_logo', $pdo);
 
-include '../partials/head.php';
+$title = 'Global System Settings';
+include '../partials/layouts/layoutTop.php'; 
 ?>
 
-<body>
-<?php
-// Option A: Using your existing BASE_URL logic (Recommended)
-if ($_SESSION['user_role'] === 'admin') {
-    include $_SERVER['DOCUMENT_ROOT'] . '/ecommerce-theme-learning/partials/sidebar-admin.php';
-} else {
-    include $_SERVER['DOCUMENT_ROOT'] . '/ecommerce-theme-learning/partials/sidebar-user.php';
-}
-?>
+<style>
+    /* Global Adaptive Background */
+    .dashboard-main-body { 
+        background: #f8fafc; 
+        min-height: 100vh; 
+        display: flex;
+        flex-direction: column;
+        transition: 0.3s; 
+    }
+    .dark .dashboard-main-body { background: #020617; }
 
-<div class="content">
-    <h1>General Settings</h1>
+    /* --- CENTERING LOGIC --- */
+    .settings-center-wrapper {
+        flex-grow: 1;
+        display: flex;
+        align-items: center; /* Vertical Center */
+        justify-content: center; /* Horizontal Center */
+        padding: 60px 20px;
+    }
 
-    <form action="../api/settings/update.ph<?php
-// 1. Load the engine
-require 'include/load.php';
+    /* Premium Settings Card */
+    .settings-card {
+        background: white;
+        border-radius: 32px;
+        border: 1px solid #e2e8f0;
+        padding: 50px;
+        width: 100%;
+        max-width: 900px;
+        transition: 0.3s;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.05);
+    }
+    .dark .settings-card { 
+        background: #0f172a; 
+        border-color: #1e293b; 
+        box-shadow: none;
+    }
 
-/* ================================
-   PAGINATION & SEARCH LOGIC (Project A Logic Preserved)
-================================ */
-$limit = 12; 
-$page  = isset($_GET['page']) && is_numeric($_GET['page']) ? (int)$_GET['page'] : 1;
-$page  = max($page, 1);
-$offset = ($page - 1) * $limit;
-$search = $_GET['q'] ?? '';
+    /* Form Labels & Inputs */
+    .setting-label {
+        display: block;
+        font-size: 10px;
+        font-weight: 900;
+        text-transform: uppercase;
+        color: #64748b;
+        letter-spacing: 1.5px;
+        margin-bottom: 10px;
+    }
+    .dark .setting-label { color: #94a3b8; }
 
-if ($search) {
-    $countStmt = $pdo->prepare("SELECT COUNT(*) FROM products WHERE product_name LIKE ?");
-    $countStmt->execute(["%$search%"]);
-    $total_items = $countStmt->fetchColumn();
+    .setting-input {
+        width: 100%;
+        padding: 14px 20px;
+        background: #f1f5f9;
+        border: 2px solid transparent;
+        border-radius: 16px;
+        font-weight: 700;
+        font-size: 14px;
+        color: #1e293b;
+        transition: 0.3s;
+    }
+    .dark .setting-input { background: #1e293b; color: #f1f5f9; }
+    .setting-input:focus {
+        background: white;
+        border-color: #6366f1;
+        outline: none;
+        box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.15);
+    }
+    .dark .setting-input:focus { background: #0f172a; }
 
-    $stmt = $pdo->prepare("SELECT * FROM products WHERE product_name LIKE ? ORDER BY created_at DESC LIMIT ? OFFSET ?");
-    $stmt->bindValue(1, "%$search%", PDO::PARAM_STR);
-    $stmt->bindValue(2, $limit, PDO::PARAM_INT);
-    $stmt->bindValue(3, $offset, PDO::PARAM_INT);
-    $stmt->execute();
-} else {
-    $countStmt = $pdo->query("SELECT COUNT(*) FROM products");
-    $total_items = $countStmt->fetchColumn();
+    /* Logo Preview Area */
+    .logo-preview-container {
+        width: 120px;
+        height: 120px;
+        border-radius: 24px;
+        background: #f8fafc;
+        border: 2px dashed #e2e8f0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        margin-bottom: 15px;
+    }
+    .dark .logo-preview-container { background: #1e293b; border-color: #334155; }
 
-    $stmt = $pdo->prepare("SELECT * FROM products ORDER BY created_at DESC LIMIT ? OFFSET ?");
-    $stmt->bindValue(1, $limit, PDO::PARAM_INT);
-    $stmt->bindValue(2, $offset, PDO::PARAM_INT);
-    $stmt->execute();
-}
+    /* Save Button */
+    .btn-save-settings {
+        background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+        color: #ffffff !important;
+        padding: 16px 48px;
+        border-radius: 18px;
+        font-weight: 900;
+        text-transform: uppercase;
+        font-size: 12px;
+        letter-spacing: 1px;
+        box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.4);
+        transition: 0.3s;
+        border: none;
+        cursor: pointer;
+    }
+    .btn-save-settings:hover { 
+        transform: translateY(-3px); 
+        box-shadow: 0 15px 30px -5px rgba(99, 102, 241, 0.5); 
+    }
 
-$products = $stmt->fetchAll();
-$total_pages = ceil($total_items / $limit);
-
-// Include updated Head and Header
-include 'partials/header.php'; 
-?>
+    /* Custom File Upload Button */
+    .custom-file-upload {
+        display: inline-block;
+        padding: 10px 20px;
+        background: #e0e7ff;
+        color: #4338ca;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: 800;
+        cursor: pointer;
+        transition: 0.3s;
+    }
+    .dark .custom-file-upload { background: #312e81; color: #c7d2fe; }
+</style>
 
 <div class="dashboard-main-body">
-    
-    <div class="card mb-6 border-0 shadow-sm">
-        <div class="card-body p-6">
-            <form action="index.php" method="GET" class="flex items-center gap-3">
-                <div class="relative grow">
-                    <input type="text" name="q" placeholder="Search products..." value="<?= e($search) ?>" 
-                           class="form-control ps-11 bg-neutral-50 dark:bg-neutral-800 border-neutral-200 dark:border-neutral-700 rounded-lg py-3">
-                    <iconify-icon icon="ion:search-outline" class="absolute start-4 top-1/2 -translate-y-1/2 text-xl text-secondary-light"></iconify-icon>
+    <div class="settings-center-wrapper">
+        <div class="settings-card">
+            
+            <div class="flex items-center justify-between mb-12">
+                <div>
+                    <h1 class="text-4xl font-black text-slate-900 dark:text-white tracking-tighter">General Settings</h1>
+                    <p class="text-slate-400 font-bold text-xs uppercase tracking-widest mt-1">Configure your Project A core identity</p>
                 </div>
-                <button type="submit" class="btn btn-primary-600 px-8 py-3 rounded-lg font-semibold transition-all">Search</button>
-                <?php if ($search): ?>
-                    <a href="index.php" class="text-danger-600 font-medium hover:underline">Clear</a>
-                <?php endif; ?>
+                <div class="hidden md:block">
+                    <iconify-icon icon="solar:settings-bold-duotone" class="text-6xl text-indigo-600/10 dark:text-indigo-400/10"></iconify-icon>
+                </div>
+            </div>
+
+            <form action="../api/settings/update.php" method="POST" enctype="multipart/form-data">
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-10 mb-12">
+                    
+                    <div class="col-span-1 space-y-8">
+                        <div>
+                            <label class="setting-label">Website Global Title</label>
+                            <input type="text" name="site_title" value="<?= e($title_val) ?>" class="setting-input" placeholder="e.g. Project A Store">
+                        </div>
+
+                        <div>
+                            <label class="setting-label">Primary Contact Email</label>
+                            <input type="email" name="contact_email" value="<?= e($email_val) ?>" class="setting-input" placeholder="admin@project-a.com">
+                        </div>
+
+                        <div>
+                            <label class="setting-label">Footer Copyright Text</label>
+                            <input type="text" name="footer_text" value="<?= e($footer_val) ?>" class="setting-input" placeholder="© 2026 Project A All Rights Reserved">
+                        </div>
+                    </div>
+
+                    <div class="col-span-1 flex flex-col items-center justify-center border-l border-slate-100 dark:border-slate-800 pl-0 md:pl-10">
+                        <label class="setting-label w-full text-center mb-6">Website Identity (Logo)</label>
+                        
+                        <div class="logo-preview-container">
+                            <?php if ($logo_val): ?>
+                                <img src="../assets/uploads/<?= e($logo_val) ?>" class="max-w-full max-h-full object-contain p-2">
+                            <?php else: ?>
+                                <iconify-icon icon="solar:gallery-bold-duotone" class="text-4xl text-slate-300"></iconify-icon>
+                            <?php endif; ?>
+                        </div>
+
+                        <label for="site_logo" class="custom-file-upload">
+                            <iconify-icon icon="solar:upload-bold-duotone" class="inline-block mr-1"></iconify-icon>
+                            Update Brand Logo
+                        </label>
+                        <input type="file" id="site_logo" name="site_logo" class="hidden" onchange="previewImage(this)">
+                        
+                        <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider mt-4">PNG, JPG or SVG (Max 2MB)</p>
+                    </div>
+
+                </div>
+
+                <div class="flex items-center justify-center pt-10 border-t border-slate-100 dark:border-slate-800">
+                    <button type="submit" class="btn-save-settings flex items-center gap-2">
+                        <iconify-icon icon="solar:diskette-bold-duotone" class="text-xl"></iconify-icon>
+                        Save Configuration
+                    </button>
+                </div>
             </form>
         </div>
     </div>
-
-    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:col-span-3 gap-6">
-        <?php if ($products): ?>
-            <?php foreach ($products as $p): ?>
-                <div class="card h-full rounded-xl border-0 shadow-sm hover:shadow-md transition-all group overflow-hidden bg-white dark:bg-neutral-700">
-                    <div class="relative overflow-hidden aspect-[4/3] bg-neutral-100">
-                        <img src="assets/uploads/<?= e($p['image']) ?>" 
-                             class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
-                        
-                        <div class="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                             <button onclick="addToCart(<?= $p['id'] ?>)" class="w-10 h-10 bg-white text-primary-600 rounded-full flex items-center justify-center shadow-lg hover:bg-primary-600 hover:text-white transition-all">
-                                <iconify-icon icon="majesticons:shopping-cart" class="text-xl"></iconify-icon>
-                             </button>
-                        </div>
-                    </div>
-
-                    <div class="card-body p-5">
-                        <h6 class="text-lg font-bold text-neutral-900 dark:text-white mb-1 truncate"><?= e($p['product_name']) ?></h6>
-                        <div class="flex items-center justify-between mt-3">
-                            <span class="text-xl font-bold text-primary-600">$<?= number_format($p['price'], 2) ?></span>
-                            <span class="text-xs font-medium text-secondary-light bg-neutral-100 dark:bg-neutral-600 px-2 py-1 rounded">In Stock</span>
-                        </div>
-                    </div>
-                </div>
-            <?php endforeach; ?>
-        <?php else: ?>
-            <div class="col-span-full py-20 text-center">
-                <iconify-icon icon="line-md:search-list-twotone" class="text-6xl text-neutral-300 mb-4"></iconify-icon>
-                <p class="text-secondary-light text-lg">No products found matching your search.</p>
-            </div>
-        <?php endif; ?>
-    </div>
-
-    <?php if ($total_pages > 1): ?>
-    <div class="flex justify-center mt-10">
-        <nav aria-label="Page navigation">
-            <ul class="flex items-center gap-2">
-                <?php if ($page > 1): ?>
-                    <li>
-                        <a href="index.php?page=<?= $page - 1 ?><?= $search ? '&q=' . urlencode($search) : '' ?>" 
-                           class="w-10 h-10 flex items-center justify-center rounded-lg border border-neutral-200 dark:border-neutral-700 text-secondary-light hover:bg-primary-600 hover:text-white transition-all">
-                            <iconify-icon icon="solar:alt-arrow-left-linear"></iconify-icon>
-                        </a>
-                    </li>
-                <?php endif; ?>
-
-                <li class="px-4 py-2 bg-primary-50 dark:bg-primary-600/20 text-primary-600 rounded-lg font-bold">
-                    Page <?= $page ?> of <?= $total_pages ?>
-                </li>
-
-                <?php if ($page < $total_pages): ?>
-                    <li>
-                        <a href="index.php?page=<?= $page + 1 ?><?= $search ? '&q=' . urlencode($search) : '' ?>" 
-                           class="w-10 h-10 flex items-center justify-center rounded-lg border border-neutral-200 dark:border-neutral-700 text-secondary-light hover:bg-primary-600 hover:text-white transition-all">
-                            <iconify-icon icon="solar:alt-arrow-right-linear"></iconify-icon>
-                        </a>
-                    </li>
-                <?php endif; ?>
-            </ul>
-        </nav>
-    </div>
-    <?php endif; ?>
-
 </div>
 
 <script>
-function addToCart(productId) {
-    fetch('api/cart/add.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: productId })
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.status === 'success') {
-            // Use a nice toast if Project B has one, else alert
-            alert('Added to cart!');
-            location.reload();
+function previewImage(input) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const container = document.querySelector('.logo-preview-container');
+            container.innerHTML = `<img src="${e.target.result}" class="max-w-full max-h-full object-contain p-2">`;
         }
-    });
+        reader.readAsDataURL(input.files[0]);
+    }
 }
 </script>
 
-<?php include 'partials/footer.php'; ?>p" method="POST" enctype="multipart/form-data">
-
-        <label>Website Title:</label><br>
-        <input type="text" name="site_title" value="<?= e($title) ?>"><br><br>
-
-        <label>Contact Email:</label><br>
-        <input type="email" name="contact_email" value="<?= e($email) ?>"><br><br>
-
-        <label>Footer Text:</label><br>
-        <input type="text" name="footer_text" value="<?= e($footer) ?>"><br><br>
-
-        <label>Current Logo:</label><br>
-        <img src="../assets/uploads/<?= getSetting('site_logo', $pdo) ?>" width="100"><br><br>
-
-        <label>Change Logo:</label><br>
-        <input type="file" name="site_logo"><br><br>
-
-        <button type="submit">Save Settings</button>
-    </form>
-</div>
-</body>
+<?php include '../partials/layouts/layoutBottom.php'; ?>
