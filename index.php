@@ -128,9 +128,10 @@ body {
     align-items: center;
     justify-content: center;
     transition: 0.3s;
+    text-decoration: none; /* Links ke liye underline hatane ke liye */
 }
 
-/* Wishlist - Top Right on Image */
+/* Wishlist - Default State (Black Outline & White Bg) */
 .wishlist-btn {
     position: absolute;
     top: 12px;
@@ -138,12 +139,21 @@ body {
     width: 36px;
     height: 36px;
     border-radius: 50%;
-    background: rgba(255,255,255,0.9);
-    color: #1e293b;
+    background: #cb8c8c;
+    color: #000000; /* Dark Icon */
     font-size: 18px;
     z-index: 5;
+    border: 1px solid #f6f8f9; /* Light Black/Grey Outline */
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
-.wishlist-btn:hover { color: #ef4444; transform: scale(1.1); background: #fff; }
+
+/* Wishlist - Hover State (Red) */
+.wishlist-btn:hover { 
+    color: #fefefe; 
+    transform: scale(1.1); 
+    background: #ef2424; 
+    border-color: #ef4444; 
+}
 
 /* Add to Cart - Bottom Right on Card */
 .cart-icon-btn {
@@ -216,9 +226,9 @@ body {
                 <div class="p-img-box">
                     <img src="assets/uploads/<?= e($p['image']) ?>" alt="<?= e($p['product_name']) ?>">
                     
-                    <button type="button" class="action-icon wishlist-btn" title="Add to Wishlist">
+                    <a href="wishlist_action.php?id=<?= $p['id'] ?>" class="action-icon wishlist-btn" title="Add to Wishlist">
                         <iconify-icon icon="lucide:heart"></iconify-icon>
-                    </button>
+                    </a>
                 </div>
 
                 <div class="card-info">
@@ -231,9 +241,9 @@ body {
                     </div>
                 </div>
 
-                <button type="button" class="action-icon cart-icon-btn" title="Add to Cart">
+                <a href="cart_action.php?id=<?= $p['id'] ?>&action=add" class="action-icon cart-icon-btn" title="Add to Cart">
                     <iconify-icon icon="lucide:shopping-cart"></iconify-icon>
-                </button>
+                </a>
 
             </div>
         <?php endforeach; ?>
