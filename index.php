@@ -7,7 +7,6 @@ $page  = isset($_GET['page']) && is_numeric($_GET['page']) ? (int)$_GET['page'] 
 $offset = ($page - 1) * $limit;
 $search = $_GET['q'] ?? '';
 
-// Fetch products with category names
 $baseQuery = "FROM products p 
               LEFT JOIN categories c ON p.category_id = c.id 
               WHERE p.product_name LIKE ?";
@@ -30,188 +29,173 @@ include 'partials/header.php';
 ?>
 
 <style>
-/* --- SHARED & DARK THEME (DEFAULT) --- */
+/* -----------------------------------------------------------
+   1. PREMIUM THEME VARIABLES
+----------------------------------------------------------- */
 body {
-    background-color: #010413;
-    color: #ffffff;
+    --bg-main: #020617;
+    --bg-card: #0f172a;
+    --text-main: #f1f5f9;
+    --text-muted: #94a3b8;
+    --accent: #3b82f6;
+    --price-bg: #10b981; /* Emerald Green for Price Box */
+    --border: rgba(255, 255, 255, 0.05);
+    --shadow-card: 0 10px 30px -10px rgba(0,0,0,0.5);
+
+    background-color: var(--bg-main);
+    color: var(--text-main);
     font-family: 'Inter', sans-serif;
-    transition: background 0.3s;
+    transition: 0.3s ease;
+}
+
+.light body {
+    --bg-main: #f8fafc;
+    --bg-card: #ffffff;
+    --text-main: #0f172a;
+    --text-muted: #64748b;
+    --border: #e2e8f0;
+    --price-bg: #059669; /* Slightly darker green for light mode */
+    --shadow-card: 0 10px 40px -15px rgba(0,0,0,0.06);
 }
 
 .main-container {
     max-width: 1400px;
     margin: 0 auto;
-    padding: 20px 20px 60px 20px;
+    padding: 30px 20px 80px 20px;
 }
 
-/* SEARCH BAR */
-.search-container {
-    display: flex;
-    justify-content: center;
-    margin-bottom: 50px;
-    margin-top: 10px;
-}
-
-.search-wrapper {
-    position: relative;
-    width: 100%;
-    max-width: 550px;
-}
-
+/* -----------------------------------------------------------
+   2. SEARCH & HEADER
+----------------------------------------------------------- */
+.search-container { display: flex; justify-content: center; margin-bottom: 50px; }
+.search-wrapper { position: relative; width: 100%; max-width: 500px; }
 .search-wrapper input {
-    width: 100%;
-    background: #0b1120;
-    border: 1px solid rgba(255,255,255,0.1);
-    padding: 14px 20px 14px 50px;
-    border-radius: 12px;
-    color: #fff;
-    transition: 0.3s;
+    width: 100%; background: var(--bg-card); border: 1px solid var(--border);
+    padding: 14px 50px; border-radius: 50px; color: var(--text-main);
+    box-shadow: var(--shadow-card);
 }
+.search-icon-inside { position: absolute; left: 18px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 20px; }
 
-.search-icon-inside {
-    position: absolute;
-    left: 18px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: #64748b;
-    font-size: 20px;
-}
+.section-title { font-size: 1.8rem; font-weight: 800; margin-bottom: 30px; letter-spacing: -0.03em; }
 
-/* SECTION HEADER */
-.section-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 35px;
-}
-
-.section-title {
-    font-size: 1.8rem;
-    font-weight: 800;
-    text-transform: uppercase;
-    position: relative;
-    padding-bottom: 8px;
-}
-
-.section-title::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 50px;
-    height: 4px;
-    background: #2563eb;
-    border-radius: 10px;
-}
-
-/* PRODUCT CARD */
+/* -----------------------------------------------------------
+   3. PRODUCT CARD DESIGN
+----------------------------------------------------------- */
 .p-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 25px;
+    gap: 30px;
 }
 
 .p-card {
-    background: #0b1120; 
-    border-radius: 28px;
-    padding: 18px;
-    border: 1px solid rgba(255, 255, 255, 0.03);
-    transition: transform 0.3s ease;
+    background: var(--bg-card);
+    border-radius: 24px;
+    padding: 16px;
+    border: 1px solid var(--border);
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    box-shadow: var(--shadow-card);
 }
 
 .p-card:hover {
     transform: translateY(-8px);
-    border-color: rgba(37, 99, 235, 0.3);
+    border-color: var(--accent);
 }
 
+/* Image Box */
 .p-img-box {
     width: 100%;
     aspect-ratio: 1/1;
-    border-radius: 22px;
+    border-radius: 18px;
     overflow: hidden;
     background: #fff; 
-    margin-bottom: 18px;
+    margin-bottom: 15px;
+    position: relative;
 }
 
-.p-img-box img {
-    width: 100%; height: 100%; object-fit: cover;
-}
+.p-img-box img { width: 100%; height: 100%; object-fit: contain; transition: 0.5s; }
+.p-card:hover .p-img-box img { transform: scale(1.05); }
 
-.cat-label {
-    text-transform: uppercase;
-    color: #3b82f6;
-    font-size: 0.7rem;
-    font-weight: 800;
-    margin-bottom: 6px;
-    display: block;
-}
-
-.name-price-row {
+/* -----------------------------------------------------------
+   4. ICON BUTTONS (Wishlist & Cart)
+----------------------------------------------------------- */
+.action-icon {
+    border: none;
+    cursor: pointer;
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    margin-bottom: 12px;
+    justify-content: center;
+    transition: 0.3s;
 }
 
-.p-name { font-size: 1.2rem; font-weight: 700; color: #fff; margin: 0; }
+/* Wishlist - Top Right on Image */
+.wishlist-btn {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.9);
+    color: #1e293b;
+    font-size: 18px;
+    z-index: 5;
+}
+.wishlist-btn:hover { color: #ef4444; transform: scale(1.1); background: #fff; }
 
-.p-price-badge {
-    background: #2563eb;
+/* Add to Cart - Bottom Right on Card */
+.cart-icon-btn {
+    position: absolute;
+    bottom: 16px;
+    right: 16px;
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: white;
+    font-size: 20px;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    opacity: 0;
+    transform: translateY(10px);
+}
+.p-card:hover .cart-icon-btn { opacity: 1; transform: translateY(0); }
+.cart-icon-btn:hover { background: #2563eb; transform: scale(1.1); }
+
+/* -----------------------------------------------------------
+   5. PRICE & DETAILS
+----------------------------------------------------------- */
+.card-info { padding-right: 50px; } /* Space for cart icon */
+
+.cat-tag { color: var(--accent); font-size: 0.7rem; font-weight: 800; text-transform: uppercase; margin-bottom: 5px; display: block; }
+.p-name { font-size: 1.1rem; font-weight: 700; color: var(--text-main); margin: 0 0 10px 0; line-height: 1.3; }
+
+.price-container { display: flex; align-items: center; gap: 8px; margin-top: auto; }
+
+/* THE GREEN PRICE BOX */
+.price-badge {
+    background: var(--price-bg);
     color: #fff;
-    padding: 6px 14px;
-    border-radius: 10px;
+    padding: 4px 12px;
+    border-radius: 8px;
     font-weight: 800;
+    font-size: 1rem;
+    box-shadow: 0 4px 10px rgba(16, 185, 129, 0.2);
 }
 
-.discount-row { display: flex; align-items: center; gap: 10px; }
+.old-price { color: var(--text-muted); text-decoration: line-through; font-size: 0.8rem; }
 
-.p-old-price { color: #475569; text-decoration: line-through; font-size: 0.85rem; }
-
-.p-save-tag {
-    background: rgba(16, 185, 129, 0.1);
-    color: #10b981;
-    padding: 3px 8px;
-    border-radius: 6px;
-    font-size: 0.7rem;
-    font-weight: 800;
+/* -----------------------------------------------------------
+   6. PAGINATION
+----------------------------------------------------------- */
+.pagination { display: flex; justify-content: center; margin-top: 50px; gap: 8px; }
+.page-link {
+    width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;
+    background: var(--bg-card); border-radius: 10px; color: var(--text-main); text-decoration: none;
+    border: 1px solid var(--border); font-weight: 600;
 }
-
-/* --- LIGHT THEME OVERRIDES --- */
-.light body { background-color: #f8fafc; color: #0f172a; }
-
-.light .search-wrapper input {
-    background: #ffffff; border: 1px solid #e2e8f0; color: #0f172a;
-}
-
-.light .section-title { color: #0f172a; }
-
-.light .p-card {
-    background: #ffffff; border: 1px solid #e2e8f0;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.02);
-}
-
-.light .p-name { color: #1e293b; }
-
-.light .p-old-price { color: #94a3b8; }
-
-.light .p-save-tag { background: #dcfce7; color: #15803d; }
-
-/* PAGINATION */
-.pagination-container {
-    display: flex; justify-content: center; align-items: center; margin-top: 50px; gap: 8px;
-}
-
-.page-btn {
-    display: flex; align-items: center; justify-content: center; min-width: 45px; height: 45px;
-    padding: 0 15px; background: #0b1120; border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 12px; color: #94a3b8; text-decoration: none; font-weight: 700;
-}
-
-.light .page-btn { background: #fff; border: 1px solid #e2e8f0; color: #64748b; }
-
-.page-btn.active { background: #2563eb; color: #fff; border-color: #2563eb; }
-
-.page-btn.disabled { opacity: 0.4; pointer-events: none; }
+.page-link.active { background: var(--accent); color: white; border-color: var(--accent); }
 </style>
 
 <div class="main-container">
@@ -223,43 +207,48 @@ body {
         </form>
     </div>
 
-    <div class="section-header">
-        <h2 class="section-title">NEW ARRIVALS</h2>
-        <a href="#" style="color: #64748b; text-decoration: none; font-size: 0.85rem; font-weight: 700;">VIEW ALL →</a>
-    </div>
+    <h2 class="section-title">Trending Now</h2>
 
     <div class="p-grid">
         <?php foreach ($products as $p): ?>
             <div class="p-card">
+                
                 <div class="p-img-box">
                     <img src="assets/uploads/<?= e($p['image']) ?>" alt="<?= e($p['product_name']) ?>">
+                    
+                    <button type="button" class="action-icon wishlist-btn" title="Add to Wishlist">
+                        <iconify-icon icon="lucide:heart"></iconify-icon>
+                    </button>
                 </div>
 
-                <span class="cat-label"><?= e($p['cat_name'] ?? 'ELECTRONICS') ?></span>
-
-                <div class="name-price-row">
+                <div class="card-info">
+                    <span class="cat-tag"><?= e($p['cat_name'] ?? 'General') ?></span>
                     <h3 class="p-name"><?= e($p['product_name']) ?></h3>
-                    <div class="p-price-badge">₹<?= number_format($p['price'], 0) ?></div>
+
+                    <div class="price-container">
+                        <span class="price-badge">₹<?= number_format($p['price'], 0) ?></span>
+                        <span class="old-price">₹<?= number_format($p['price'] * 1.2, 0) ?></span>
+                    </div>
                 </div>
 
-                <div class="discount-row">
-                    <span class="p-old-price">₹<?= number_format($p['price'] * 1.2, 0) ?></span>
-                    <span class="p-save-tag">SAVE 20%</span>
-                </div>
+                <button type="button" class="action-icon cart-icon-btn" title="Add to Cart">
+                    <iconify-icon icon="lucide:shopping-cart"></iconify-icon>
+                </button>
+
             </div>
         <?php endforeach; ?>
     </div>
 
     <?php if ($total_pages > 1): ?>
-    <div class="pagination-container">
-        <a href="?page=<?= max(1, $page - 1) ?>&q=<?= urlencode($search) ?>" class="page-btn <?= ($page <= 1) ? 'disabled' : '' ?>">
-            <iconify-icon icon="lucide:chevron-left"></iconify-icon> Prev
+    <div class="pagination">
+        <a href="?page=<?= max(1, $page - 1) ?>&q=<?= urlencode($search) ?>" class="page-link">
+            <iconify-icon icon="lucide:chevron-left"></iconify-icon>
         </a>
         <?php for ($i = 1; $i <= $total_pages; $i++): ?>
-            <a href="?page=<?= $i ?>&q=<?= urlencode($search) ?>" class="page-btn <?= ($page == $i) ? 'active' : '' ?>"><?= $i ?></a>
+            <a href="?page=<?= $i ?>&q=<?= urlencode($search) ?>" class="page-link <?= ($page == $i) ? 'active' : '' ?>"><?= $i ?></a>
         <?php endfor; ?>
-        <a href="?page=<?= min($total_pages, $page + 1) ?>&q=<?= urlencode($search) ?>" class="page-btn <?= ($page >= $total_pages) ? 'disabled' : '' ?>">
-            Next <iconify-icon icon="lucide:chevron-right"></iconify-icon>
+        <a href="?page=<?= min($total_pages, $page + 1) ?>&q=<?= urlencode($search) ?>" class="page-link">
+            <iconify-icon icon="lucide:chevron-right"></iconify-icon>
         </a>
     </div>
     <?php endif; ?>
