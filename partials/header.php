@@ -27,6 +27,7 @@
     <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/vendor/bootstrap.min.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/style.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/theme.css">
+    
 
     <!-- ICONIFY -->
     <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>

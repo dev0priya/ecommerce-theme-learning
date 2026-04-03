@@ -7,14 +7,17 @@ $page  = isset($_GET['page']) && is_numeric($_GET['page']) ? (int)$_GET['page'] 
 $offset = ($page - 1) * $limit;
 $search = $_GET['q'] ?? '';
 
-$baseQuery = "FROM products WHERE product_name LIKE ?";
+// Fetch products with category names
+$baseQuery = "FROM products p 
+              LEFT JOIN categories c ON p.category_id = c.id 
+              WHERE p.product_name LIKE ?";
 $params = ["%$search%"];
 
 $countStmt = $pdo->prepare("SELECT COUNT(*) $baseQuery");
 $countStmt->execute($params);
 $total_items = $countStmt->fetchColumn();
 
-$stmt = $pdo->prepare("SELECT * $baseQuery ORDER BY created_at DESC LIMIT ? OFFSET ?");
+$stmt = $pdo->prepare("SELECT p.*, c.name as cat_name $baseQuery ORDER BY p.id DESC LIMIT ? OFFSET ?");
 $stmt->bindValue(1, $params[0], PDO::PARAM_STR);
 $stmt->bindValue(2, $limit, PDO::PARAM_INT);
 $stmt->bindValue(3, $offset, PDO::PARAM_INT);
@@ -26,326 +29,240 @@ $total_pages = ceil($total_items / $limit);
 include 'partials/header.php'; 
 ?>
 
-<!-- ✅ Iconify FIX -->
-<script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
-
 <style>
-:root {
-    --p-indigo: #6366f1;
-    --p-indigo-dark: #4f46e5;
-    --p-rose: #f43f5e;
-    --p-dark: #0f172a;
-    --p-border: #e2e8f0;
-}
-
-/* BASE */
+/* --- SHARED & DARK THEME (DEFAULT) --- */
 body {
-    background-color: #f8fafc;
+    background-color: #010413;
+    color: #ffffff;
     font-family: 'Inter', sans-serif;
+    transition: background 0.3s;
 }
 
 .main-container {
     max-width: 1400px;
     margin: 0 auto;
-    padding: 50px 20px;
+    padding: 20px 20px 60px 20px;
 }
 
-/* SEARCH */
-.search-section {
+/* SEARCH BAR */
+.search-container {
     display: flex;
     justify-content: center;
     margin-bottom: 50px;
+    margin-top: 10px;
 }
 
-.search-input-group {
+.search-wrapper {
     position: relative;
     width: 100%;
-    max-width: 500px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.05);
-    border-radius: 50px;
+    max-width: 550px;
 }
 
-.search-input-group input {
+.search-wrapper input {
     width: 100%;
-    padding: 15px 25px 15px 50px;
-    border-radius: 50px;
-    border: 1px solid var(--p-border);
-    outline: none;
+    background: #0b1120;
+    border: 1px solid rgba(255,255,255,0.1);
+    padding: 14px 20px 14px 50px;
+    border-radius: 12px;
+    color: #fff;
     transition: 0.3s;
 }
 
-.search-input-group input:focus {
-    border-color: var(--p-indigo);
-    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
-}
-
-.search-icon {
+.search-icon-inside {
     position: absolute;
-    left: 20px;
-    top: 17px;
-    color: #94a3b8;
+    left: 18px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #64748b;
     font-size: 20px;
 }
 
-/* GRID */
+/* SECTION HEADER */
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 35px;
+}
+
+.section-title {
+    font-size: 1.8rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    position: relative;
+    padding-bottom: 8px;
+}
+
+.section-title::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 50px;
+    height: 4px;
+    background: #2563eb;
+    border-radius: 10px;
+}
+
+/* PRODUCT CARD */
 .p-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 35px;
+    gap: 25px;
 }
 
-/* CARD */
 .p-card {
-    background: white;
-    border-radius: 30px;
-    padding: 12px;
-    border: 1px solid var(--p-border);
-    transition: 0.4s;
-    position: relative;
-    display: flex;
-    flex-direction: column;
+    background: #0b1120; 
+    border-radius: 28px;
+    padding: 18px;
+    border: 1px solid rgba(255, 255, 255, 0.03);
+    transition: transform 0.3s ease;
 }
 
 .p-card:hover {
-    transform: translateY(-10px);
-    box-shadow: 0 25px 50px rgba(99, 102, 241, 0.15);
-    border-color: var(--p-indigo);
+    transform: translateY(-8px);
+    border-color: rgba(37, 99, 235, 0.3);
 }
 
-/* IMAGE */
 .p-img-box {
     width: 100%;
     aspect-ratio: 1/1;
     border-radius: 22px;
     overflow: hidden;
-    background: linear-gradient(135deg, #eef2ff, #f8fafc);
+    background: #fff; 
+    margin-bottom: 18px;
 }
 
 .p-img-box img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition: 0.5s;
+    width: 100%; height: 100%; object-fit: cover;
 }
 
-.p-card:hover .p-img-box img {
-    transform: scale(1.08);
-}
-
-/* ❤️ WISHLIST */
-.wish-btn {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    z-index: 10;
-
-    width: 44px;
-    height: 44px;
-
-    background: rgba(255,255,255,0.9);
-    backdrop-filter: blur(10px);
-
-    border: 1px solid #e5e7eb;
-    border-radius: 50%;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    cursor: pointer;
-    transition: 0.3s;
-
-    box-shadow: 0 6px 15px rgba(0,0,0,0.08);
-}
-
-.wish-btn iconify-icon {
-    color: #64748b;
-    font-size: 22px;
-    transition: 0.3s;
-}
-
-.wish-btn:hover {
-    border-color: var(--p-rose);
-    transform: scale(1.1);
-}
-
-.wish-btn:hover iconify-icon {
-    color: var(--p-rose);
-}
-
-.wish-btn.active {
-    background: var(--p-rose);
-    border-color: var(--p-rose);
-}
-
-.wish-btn.active iconify-icon {
-    color: #fff;
-}
-
-/* CONTENT */
-.p-content {
-    padding: 15px 5px;
-    text-align: center;
-    flex-grow: 1;
-}
-
-.p-name {
+.cat-label {
+    text-transform: uppercase;
+    color: #3b82f6;
+    font-size: 0.7rem;
     font-weight: 800;
-    color: var(--p-dark);
-    font-size: 1.1rem;
+    margin-bottom: 6px;
+    display: block;
 }
 
-.p-price {
-    font-weight: 900;
-    color: var(--p-indigo);
-    font-size: 1.4rem;
-    margin: 10px 0;
-}
-
-/* 🛒 BUTTON */
-.add-btn {
-    width: 100%;
-    padding: 12px;
-    border-radius: 18px;
-    border: none;
-    font-weight: 700;
-
+.name-price-row {
     display: flex;
+    justify-content: space-between;
     align-items: center;
-    justify-content: center;
-    gap: 8px;
-
-    background: linear-gradient(135deg, var(--p-indigo), var(--p-indigo-dark));
-    color: white;
-
-    cursor: pointer;
-    transition: 0.3s;
+    margin-bottom: 12px;
 }
 
-.add-btn:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 12px 25px rgba(99, 102, 241, 0.3);
+.p-name { font-size: 1.2rem; font-weight: 700; color: #fff; margin: 0; }
+
+.p-price-badge {
+    background: #2563eb;
+    color: #fff;
+    padding: 6px 14px;
+    border-radius: 10px;
+    font-weight: 800;
 }
+
+.discount-row { display: flex; align-items: center; gap: 10px; }
+
+.p-old-price { color: #475569; text-decoration: line-through; font-size: 0.85rem; }
+
+.p-save-tag {
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 0.7rem;
+    font-weight: 800;
+}
+
+/* --- LIGHT THEME OVERRIDES --- */
+.light body { background-color: #f8fafc; color: #0f172a; }
+
+.light .search-wrapper input {
+    background: #ffffff; border: 1px solid #e2e8f0; color: #0f172a;
+}
+
+.light .section-title { color: #0f172a; }
+
+.light .p-card {
+    background: #ffffff; border: 1px solid #e2e8f0;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.02);
+}
+
+.light .p-name { color: #1e293b; }
+
+.light .p-old-price { color: #94a3b8; }
+
+.light .p-save-tag { background: #dcfce7; color: #15803d; }
 
 /* PAGINATION */
-.pagination-wrap {
-    display: flex;
-    justify-content: center;
-    margin-top: 60px;
-    gap: 10px;
+.pagination-container {
+    display: flex; justify-content: center; align-items: center; margin-top: 50px; gap: 8px;
 }
 
-.page-link {
-    width: 45px;
-    height: 45px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    background: white;
-    border: 1px solid var(--p-border);
-    border-radius: 12px;
-
-    text-decoration: none;
-    color: var(--p-dark);
-    font-weight: 700;
-    transition: 0.3s;
+.page-btn {
+    display: flex; align-items: center; justify-content: center; min-width: 45px; height: 45px;
+    padding: 0 15px; background: #0b1120; border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px; color: #94a3b8; text-decoration: none; font-weight: 700;
 }
 
-.page-link:hover,
-.page-link.active {
-    background: var(--p-indigo);
-    color: white;
-    border-color: var(--p-indigo);
-}
+.light .page-btn { background: #fff; border: 1px solid #e2e8f0; color: #64748b; }
+
+.page-btn.active { background: #2563eb; color: #fff; border-color: #2563eb; }
+
+.page-btn.disabled { opacity: 0.4; pointer-events: none; }
 </style>
 
 <div class="main-container">
-    <div class="search-section">
-        <form action="" method="GET" class="search-input-group">
-            <iconify-icon icon="lucide:search" class="search-icon"></iconify-icon>
-            <input type="text" name="q" placeholder="Search..." value="<?= e($search) ?>">
+    
+    <div class="search-container">
+        <form action="" method="GET" class="search-wrapper">
+            <iconify-icon icon="lucide:search" class="search-icon-inside"></iconify-icon>
+            <input type="text" name="q" placeholder="Search premium products..." value="<?= e($search) ?>">
         </form>
+    </div>
+
+    <div class="section-header">
+        <h2 class="section-title">NEW ARRIVALS</h2>
+        <a href="#" style="color: #64748b; text-decoration: none; font-size: 0.85rem; font-weight: 700;">VIEW ALL →</a>
     </div>
 
     <div class="p-grid">
         <?php foreach ($products as $p): ?>
             <div class="p-card">
-                <button class="wish-btn" data-product-id="<?= $p['id'] ?>">
-                    <iconify-icon icon="solar:heart-linear"></iconify-icon>
-                </button>
-
                 <div class="p-img-box">
                     <img src="assets/uploads/<?= e($p['image']) ?>" alt="<?= e($p['product_name']) ?>">
                 </div>
 
-                <div class="p-content">
-                    <h3 class="p-name"><?= e($p['product_name']) ?></h3>
-                    <span class="p-price">₹<?= number_format($p['price'], 2) ?></span>
+                <span class="cat-label"><?= e($p['cat_name'] ?? 'ELECTRONICS') ?></span>
 
-                    <button onclick="addToCart(<?= $p['id'] ?>)" class="add-btn">
-                        <iconify-icon icon="solar:cart-large-minimalistic-bold"></iconify-icon>
-                        Add to Cart
-                    </button>
+                <div class="name-price-row">
+                    <h3 class="p-name"><?= e($p['product_name']) ?></h3>
+                    <div class="p-price-badge">₹<?= number_format($p['price'], 0) ?></div>
+                </div>
+
+                <div class="discount-row">
+                    <span class="p-old-price">₹<?= number_format($p['price'] * 1.2, 0) ?></span>
+                    <span class="p-save-tag">SAVE 20%</span>
                 </div>
             </div>
         <?php endforeach; ?>
     </div>
 
     <?php if ($total_pages > 1): ?>
-    <div class="pagination-wrap">
+    <div class="pagination-container">
+        <a href="?page=<?= max(1, $page - 1) ?>&q=<?= urlencode($search) ?>" class="page-btn <?= ($page <= 1) ? 'disabled' : '' ?>">
+            <iconify-icon icon="lucide:chevron-left"></iconify-icon> Prev
+        </a>
         <?php for ($i = 1; $i <= $total_pages; $i++): ?>
-            <a href="?page=<?= $i ?>&q=<?= urlencode($search) ?>" 
-               class="page-link <?= ($page == $i) ? 'active' : '' ?>">
-                <?= $i ?>
-            </a>
+            <a href="?page=<?= $i ?>&q=<?= urlencode($search) ?>" class="page-btn <?= ($page == $i) ? 'active' : '' ?>"><?= $i ?></a>
         <?php endfor; ?>
+        <a href="?page=<?= min($total_pages, $page + 1) ?>&q=<?= urlencode($search) ?>" class="page-btn <?= ($page >= $total_pages) ? 'disabled' : '' ?>">
+            Next <iconify-icon icon="lucide:chevron-right"></iconify-icon>
+        </a>
     </div>
     <?php endif; ?>
 </div>
-
-<script>
-const BASE_URL = '<?= BASE_URL ?>';
-
-$(document).ready(function() {
-    $('.wish-btn').on('click', function() {
-        const btn = $(this);
-        const pid = btn.data('product-id');
-
-        $.ajax({
-            url: BASE_URL + '/actions/wishlist_add.php',
-            method: 'POST',
-            data: { product_id: pid },
-            dataType: 'json',
-            success: function(res) {
-                if (res.status === 'success') {
-                    btn.addClass('active');
-                    btn.find('iconify-icon').attr('icon', 'solar:heart-bold');
-
-                    Swal.fire({
-                        toast: true,
-                        position: 'top-end',
-                        icon: 'success',
-                        title: 'Saved to Wishlist',
-                        showConfirmButton: false,
-                        timer: 2000
-                    });
-                }
-            }
-        });
-    });
-});
-
-function addToCart(id) {
-    Swal.fire({
-        toast: true,
-        position: 'top-end',
-        icon: 'success',
-        title: 'Added to cart successfully',
-        showConfirmButton: false,
-        timer: 1500
-    });
-}
-</script>
 
 <?php include 'partials/footer.php'; ?>

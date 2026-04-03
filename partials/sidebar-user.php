@@ -32,21 +32,21 @@
             </li>
 
             <li>
-                <a href="<?= BASE_URL ?>/modules/user/dashboard.php#address">
+                <a href="<?= BASE_URL ?>/modules/user/address.php">
                     <iconify-icon icon="mdi:map-marker-outline" class="menu-icon"></iconify-icon>
                     <span>Addresses</span>
                 </a>
             </li>
 
             <li>
-                <a href="<?= BASE_URL ?>/modules/user/dashboard.php#security">
+                <a href="<?= BASE_URL ?>/modules/user/security.php">
                     <iconify-icon icon="solar:lock-password-outline" class="menu-icon"></iconify-icon>
                     <span>Security</span>
                 </a>
             </li>
 
             <li>
-                <a href="<?= BASE_URL ?>/edit-profile.php">
+                <a href="<?= BASE_URL ?>/modules/user/edit-profile.php">
                     <iconify-icon icon="solar:user-linear" class="menu-icon"></iconify-icon>
                     <span>Edit Profile</span>
                 </a>
