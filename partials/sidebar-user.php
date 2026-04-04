@@ -70,7 +70,7 @@
             </li>
 
             <li>
-                <a href="<?= BASE_URL ?>/wishlist.php">
+                <a href="<?= BASE_URL ?>/pages/wishlist.php">
                     <iconify-icon icon="mdi:heart-outline" class="menu-icon"></iconify-icon>
                     <span>Wishlist</span>
                 </a>

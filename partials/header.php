@@ -163,7 +163,7 @@
                 </button>
 
                 <!-- ❤️ -->
-                <a href="<?= BASE_URL ?>/wishlist.php" class="icon-btn">
+                <a href="pages/wishlist.php" class="icon-btn">
                     <iconify-icon icon="solar:heart-linear"></iconify-icon>
                 </a>
 

@@ -226,9 +226,9 @@ body {
                 <div class="p-img-box">
                     <img src="assets/uploads/<?= e($p['image']) ?>" alt="<?= e($p['product_name']) ?>">
                     
-                    <a href="wishlist_action.php?id=<?= $p['id'] ?>" class="action-icon wishlist-btn" title="Add to Wishlist">
-                        <iconify-icon icon="lucide:heart"></iconify-icon>
-                    </a>
+                    <button class="action-icon wishlist-btn wish-btn" data-product-id="<?= $p['id'] ?>">
+                     <iconify-icon icon="lucide:heart"></iconify-icon>
+                    </button>
                 </div>
 
                 <div class="card-info">
@@ -265,3 +265,79 @@ body {
 </div>
 
 <?php include 'partials/footer.php'; ?>
+
+    <script>
+$(document).ready(function() {
+
+    $('.wish-btn').on('click', function() {
+        const btn = $(this);
+        const pid = btn.data('product-id');
+
+        $.post('ajax/wishlist_add.php', { product_id: pid }, function(res) {
+
+            console.log(res); // debug
+
+            /* SUCCESS */
+            if (res.status === 'success') {
+
+                // heart active
+                btn.find('iconify-icon')
+                   .attr('icon', 'solar:heart-bold')
+                   .css('color', 'red');
+
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'success',
+                    title: 'Added to Wishlist ❤️',
+                    html: '<a href="pages/wishlist.php" style="color:#2563eb; font-weight:600; text-decoration:none;">Tap to view</a>',
+                    showConfirmButton: false,
+                    timer: 2500
+                });
+            }
+
+            /* ALREADY EXISTS */
+            else if (res.status === 'exists') {
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'info',
+                    title: 'Already in Wishlist',
+                    showConfirmButton: false,
+                    timer: 2000
+                });
+            }
+
+            /* LOGIN REQUIRED */
+            else if (res.message === 'please_login') {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Login Required',
+                    text: 'Please login to save items'
+                });
+            }
+
+            /* OTHER ERROR */
+            else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: res.message || 'Something went wrong'
+                });
+            }
+
+        }, 'json')
+
+        /* AJAX FAIL */
+        .fail(function() {
+            Swal.fire({
+                icon: 'error',
+                title: 'Server Error',
+                text: 'Request failed. Try again.'
+            });
+        });
+
+    });
+
+});
+</script>
