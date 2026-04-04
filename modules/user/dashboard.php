@@ -165,16 +165,16 @@ include '../../partials/head.php';
                 <div class="neon-glass-card">
                     <h3 class="text-sm font-black text-slate-800 dark:text-white uppercase tracking-widest mb-6">Quick Actions</h3>
                     <div class="grid grid-cols-2 gap-4">
-                        <a href="../../edit-profile.php" class="quick-link-btn">
+                        <a href="/ecommerce-theme-learning/modules/user/edit-profile.php" class="quick-link-btn">
                             <iconify-icon icon="solar:user-bold-duotone" class="text-lg"></iconify-icon> Edit Profile
                         </a>
-                        <a href="../../wishlist.php" class="quick-link-btn">
+                        <a href="/ecommerce-theme-learning/pages/wishlist.php" class="quick-link-btn">
                             <iconify-icon icon="solar:heart-bold-duotone" class="text-lg text-rose-500"></iconify-icon> Wishlist
                         </a>
-                        <a href="../../cart/index.php" class="quick-link-btn">
+                        <a href="/ecommerce-theme-learning/cart/index.php" class="quick-link-btn">
                             <iconify-icon icon="solar:cart-bold-duotone" class="text-lg text-emerald-500"></iconify-icon> My Cart
                         </a>
-                        <a href="../../contact.php" class="quick-link-btn">
+                        <a href="/ecommerce-theme-learning/pages/contact.php" class="quick-link-btn">
                             <iconify-icon icon="solar:help-bold-duotone" class="text-lg text-indigo-500"></iconify-icon> Support
                         </a>
                     </div>
