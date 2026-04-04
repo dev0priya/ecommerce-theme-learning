@@ -22,132 +22,195 @@ $title = 'Order Successful';
 include '../partials/head.php';
 ?>
 
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+<script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+
 <style>
     :root {
-        --pop-indigo: #6366f1;
-        --pop-emerald: #10b981;
-        --slate-900: #0f172a;
-        --bg-soft: #f8fafc;
+        --bg-main: #020617;
+        --bg-card: rgba(30, 41, 59, 0.4);
+        --text-main: #f8fafc;
+        --text-muted: #94a3b8;
+        --neon-emerald: #10b981; /* Default Emerald */
+        --neon-mint: #00f59b;    /* ✅ Bright Mint Green for Heading */
+        --neon-purple: #a855f7;
+        --border: rgba(255, 255, 255, 0.08);
+        --glass-bg: blur(16px);
+    }
+
+    /* Light Theme Support */
+    .light body, body.light {
+        --bg-main: #f8fafc;
+        --bg-card: rgba(255, 255, 255, 0.8);
+        --text-main: #0f172a;
+        --text-muted: #64748b;
+        --neon-mint: #00cc80;    /* ✅ Slightly Darker Mint for Light Background */
+        --border: rgba(0, 0, 0, 0.05);
     }
 
     body { 
-        background: var(--bg-soft); 
-        font-family: 'Inter', sans-serif; 
+        background: var(--bg-main); 
+        font-family: 'Plus Jakarta Sans', sans-serif; 
         display: flex; 
         align-items: center; 
         justify-content: center; 
         min-height: 100vh; 
         margin: 0; 
+        color: var(--text-main);
     }
 
+    /* PREMIUM SUCCESS CARD */
     .success-card {
-        background: white;
-        padding: 50px 40px;
-        border-radius: 3rem;
-        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.08);
-        max-width: 500px;
-        width: 100%;
+        background: var(--bg-card);
+        backdrop-filter: var(--glass-bg);
+        padding: 60px 40px;
+        border-radius: 40px;
+        border: 1px solid var(--border);
+        max-width: 480px;
+        width: 90%;
         text-align: center;
-        border: 1px solid #f1f5f9;
+        box-shadow: 0 40px 100px -20px rgba(0, 0, 0, 0.5);
         position: relative;
-        overflow: hidden;
+        animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
-    /* Success Icon Pop */
-    .icon-container {
-        width: 100px;
-        height: 100px;
-        background: #d1fae5;
-        color: var(--pop-emerald);
-        border-radius: 35px;
+    @keyframes slideUp {
+        0% { opacity: 0; transform: translateY(30px); }
+        100% { opacity: 1; transform: translateY(0); }
+    }
+
+    /* CELEBRATION ICON */
+    .icon-wrapper {
+        width: 120px;
+        height: 120px;
+        background: rgba(16, 185, 129, 0.1);
+        color: var(--neon-emerald);
+        border-radius: 40px;
         display: flex;
         align-items: center;
         justify-content: center;
         margin: 0 auto 30px;
-        font-size: 4rem;
-        animation: pop-in 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+        font-size: 5rem;
+        position: relative;
+        animation: pop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
     }
 
-    @keyframes pop-in {
-        0% { transform: scale(0.5); opacity: 0; }
-        100% { transform: scale(1); opacity: 1; }
+    @keyframes pop {
+        0% { transform: scale(0); }
+        80% { transform: scale(1.1); }
+        100% { transform: scale(1); }
     }
 
-    h1 { font-weight: 900; color: var(--slate-900); font-size: 2.2rem; margin-bottom: 10px; letter-spacing: -0.03em; }
-    p { color: #64748b; font-weight: 500; line-height: 1.6; margin-bottom: 35px; }
+    /* GLOW EFFECT */
+    .icon-wrapper::after {
+        content: '';
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        background: var(--neon-emerald);
+        filter: blur(40px);
+        opacity: 0.2;
+        z-index: -1;
+    }
 
-    .invoice-info {
-        background: #f8fafc;
-        padding: 20px;
-        border-radius: 1.5rem;
-        border: 1px solid #e2e8f0;
-        margin-bottom: 35px;
+    /* ✅ Heading in Mint Green with slight glow */
+    h1 { 
+        font-weight: 800; 
+        font-size: 2.2rem; 
+        margin-bottom: 12px; 
+        letter-spacing: -1px; 
+        color: var(--neon-mint); 
+        text-shadow: 0 0 20px rgba(0, 245, 155, 0.3);
+    }
+
+    p { color: var(--text-muted); font-weight: 500; line-height: 1.6; margin-bottom: 40px; font-size: 0.95rem; }
+
+    /* INVOICE DETAILS BOX */
+    .invoice-premium-box {
+        background: rgba(0, 0, 0, 0.2);
+        padding: 25px;
+        border-radius: 24px;
+        border: 1px solid var(--border);
+        margin-bottom: 40px;
         display: flex;
         flex-direction: column;
-        gap: 8px;
+        gap: 12px;
     }
+    .light .invoice-premium-box { background: rgba(255, 255, 255, 0.5); }
 
-    .info-row { display: flex; justify-content: space-between; font-size: 0.9rem; }
-    .label { color: #94a3b8; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
-    .value { color: var(--slate-900); font-weight: 800; }
+    .info-row { display: flex; justify-content: space-between; font-size: 0.85rem; }
+    .label { color: var(--text-muted); font-weight: 800; text-transform: uppercase; letter-spacing: 2px; font-size: 0.7rem; }
+    .value { color: var(--text-main); font-weight: 700; }
 
-    /* Buttons Pop */
+    /* ACTION BUTTONS */
     .btn-group { display: flex; flex-direction: column; gap: 15px; }
 
-    .btn-main {
-        background: var(--pop-indigo);
+    .btn-neon {
+        background: var(--neon-purple);
         color: white;
-        padding: 16px;
-        border-radius: 1.25rem;
+        padding: 18px;
+        border-radius: 18px;
         font-weight: 800;
         text-decoration: none;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-size: 0.85rem;
         transition: 0.3s;
-        box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.3);
+        box-shadow: 0 10px 25px rgba(168, 85, 247, 0.3);
     }
 
-    .btn-main:hover { 
+    .btn-neon:hover { 
         transform: translateY(-3px); 
-        background: var(--slate-900); 
-        box-shadow: 0 15px 20px -5px rgba(15, 23, 42, 0.2);
+        box-shadow: 0 15px 35px rgba(168, 85, 247, 0.5);
     }
 
-    .btn-outline {
-        color: var(--pop-indigo);
+    .btn-link {
+        color: var(--text-muted);
         font-weight: 700;
         text-decoration: none;
-        font-size: 0.9rem;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
         transition: 0.2s;
     }
-    .btn-outline:hover { color: var(--slate-900); text-decoration: underline; }
+    .btn-link:hover { color: var(--text-main); }
 
 </style>
 
 <div class="success-card">
-    <div class="icon-container">
+    <div class="icon-wrapper">
         <iconify-icon icon="solar:check-circle-bold-duotone"></iconify-icon>
     </div>
 
-    <h1>Payment Success!</h1>
-    <p>Your transaction was authorized successfully. We are now preparing your masterpieces for shipment.</p>
+    <h1>Success! 🎉</h1>
+    <p>Your payment was confirmed. We've started preparing your order for delivery.</p>
 
-    <div class="invoice-info">
+    <div class="invoice-premium-box">
         <div class="info-row">
-            <span class="label">Invoice Number</span>
-            <span class="value"><?= e($invoice['invoice_number']) ?></span>
+            <span class="label">Invoice No.</span>
+            <span class="value">#<?= e($invoice['invoice_number']) ?></span>
         </div>
         <div class="info-row">
             <span class="label">Amount Paid</span>
-            <span class="value" style="color: var(--pop-emerald);">₹<?= number_format($invoice['grand_total'], 2) ?></span>
+            <span class="value" style="color: var(--neon-emerald);">₹<?= number_format($invoice['grand_total'], 2) ?></span>
         </div>
         <div class="info-row">
             <span class="label">Status</span>
-            <span class="value" style="text-transform: uppercase; color: var(--pop-emerald);">Paid</span>
+            <span class="value">
+                <span style="background: rgba(16, 185, 129, 0.1); color: var(--neon-emerald); padding: 4px 10px; border-radius: 8px; font-size: 0.7rem;">COMPLETED</span>
+            </span>
         </div>
     </div>
 
     <div class="btn-group">
-        <a href="../index.php" class="btn-main">CONTINUE SHOPPING</a>
-        <a href="../admin/view.php?id=<?= $invoice_id ?>" class="btn-outline">View Digital Invoice</a>
+        <a href="../index.php" class="btn-neon">Continue Shopping →</a>
+        
+    </div>
+
+    <div style="margin-top: 30px; border-top: 1px solid var(--border); pt-20">
+        <p style="font-size: 11px; margin-top: 20px; opacity: 0.5;">
+            A confirmation email has been sent to your registered address.
+        </p>
     </div>
 </div>
 

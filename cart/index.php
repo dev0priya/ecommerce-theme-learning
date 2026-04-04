@@ -5,7 +5,12 @@ include '../partials/header.php';
 
 // Empty cart check
 if (!isset($_SESSION['cart']) || empty($_SESSION['cart'])) {
-    echo "<h2 style='text-align:center;margin-top:50px;'>Your cart is empty 🛒</h2>";
+    echo "<div style='display:flex; min-height:100vh;'>";
+    include '../partials/sidebar-user.php';
+    echo "<div style='flex:1; margin-left:280px; padding:100px 40px; text-align:center;'>
+            <h2 style='color:var(--text-main); font-size:2rem;'>Your cart is empty 🛒</h2>
+            <p style='color:var(--text-muted);'>Add some products to see them here.</p>
+          </div></div>";
     include '../partials/footer.php';
     exit;
 }
@@ -21,137 +26,190 @@ $products = $stmt->fetchAll();
 $total = 0;
 ?>
 
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <style>
-body {
-    background: #f8fafc;
-    font-family: 'Inter', sans-serif;
+:root {
+    --bg-main: #020617;
+    --bg-card: rgba(30, 41, 59, 0.5);
+    --text-main: #f8fafc;
+    --text-muted: #94a3b8;
+    --neon-green: #00ff88;
+    --neon-blue: #00f2ff;
+    --neon-pink: #ff007a;
+    --border: rgba(255, 255, 255, 0.08);
+    --glass-bg: blur(12px);
 }
 
-.container {
-    max-width: 1100px;
-    margin: auto;
-    padding: 40px 20px;
+.light body {
+    --bg-main: #f8fafc;
+    --bg-card: rgba(255, 255, 255, 0.8);
+    --text-main: #0f172a;
+    --text-muted: #64748b;
+    --neon-green: #10b981;
+    --neon-blue: #2563eb;
+    --neon-pink: #dc2626;
+    --border: rgba(0, 0, 0, 0.05);
 }
 
+body { margin: 0; font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg-main); color: var(--text-main); }
+
+/* LAYOUT STRUCTURE (Fixes Sidebar & Footer Overlap) */
+.user-panel-wrapper { display: flex; min-height: 100vh; position: relative; }
+.main-content-area { flex: 1; margin-left: 280px; display: flex; flex-direction: column; min-width: 0; }
+.content-body { padding: 40px; flex-grow: 1; }
+
+.section-label { font-size: 10px; font-weight: 900; text-transform: uppercase; color: var(--text-muted); letter-spacing: 4px; display: block; margin-bottom: 5px; }
+.page-title { font-size: 26px; font-weight: 900; color: var(--text-main); margin-bottom: 30px; }
+
+/* CART CARDS */
 .cart-card {
-    background: #fff;
+    background: var(--bg-card);
+    backdrop-filter: var(--glass-bg);
     border-radius: 20px;
-    padding: 20px;
-    margin-bottom: 20px;
+    padding: 15px 20px;
+    margin-bottom: 15px;
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+    gap: 20px;
+    border: 1px solid var(--border);
+    transition: 0.3s ease;
 }
 
-.cart-img {
-    width: 80px;
-    height: 80px;
-    object-fit: contain;
-}
-
-.cart-info {
-    flex: 1;
-    padding: 0 20px;
-}
-
-.qty-box {
+.cart-img-box {
+    width: 70px;
+    height: 70px;
+    background: #fff;
+    border-radius: 12px;
+    padding: 5px;
     display: flex;
     align-items: center;
-    gap: 10px;
+    justify-content: center;
 }
+.cart-img { width: 100%; height: 100%; object-fit: contain; }
 
-.qty-btn {
-    padding: 6px 12px;
-    border: none;
-    background: #3b82f6;
-    color: #fff;
-    border-radius: 6px;
-    cursor: pointer;
-}
+.cart-info { flex: 1; }
+.cart-info h3 { font-size: 1rem; font-weight: 700; margin: 0; color: var(--text-main); }
+.cart-info p { font-size: 0.9rem; font-weight: 800; color: var(--neon-blue); margin-top: 4px; }
 
+/* QUANTITY BOX */
+.qty-box { display: flex; align-items: center; background: rgba(0,0,0,0.1); border-radius: 10px; padding: 4px; border: 1px solid var(--border); }
+.qty-btn { width: 28px; height: 28px; border: none; background: transparent; color: var(--text-main); font-weight: 900; cursor: pointer; border-radius: 6px; }
+.qty-btn:hover { background: var(--neon-blue); color: #000; }
+.qty-val { padding: 0 12px; font-weight: 800; font-size: 13px; }
+
+/* REMOVE BUTTON */
 .remove-btn {
-    background: #ef4444;
-    color: #fff;
-    border: none;
+    background: transparent;
+    color: var(--neon-pink);
+    border: 1px solid var(--neon-pink);
     padding: 8px 12px;
-    border-radius: 6px;
+    border-radius: 10px;
     cursor: pointer;
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    transition: 0.3s;
+}
+.remove-btn:hover { background: var(--neon-pink); color: #fff; }
+
+/* TOTAL & COMPACT CHECKOUT */
+.total-box {
+    margin-top: 30px;
+    padding: 25px;
+    background: var(--bg-card);
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 30px;
 }
 
-.total-box {
-    text-align: right;
-    margin-top: 30px;
-}
+.total-box h3 { font-size: 1.2rem; font-weight: 800; margin: 0; }
 
 .checkout-btn {
-    margin-top: 15px;
-    padding: 14px 22px;
-    background: linear-gradient(135deg, #10b981, #059669);
-    color: #fff;
+    padding: 12px 25px; /* Reduced padding for smaller size */
+    background: var(--neon-green);
+    color: #000;
     border: none;
     border-radius: 12px;
     cursor: pointer;
-    font-weight: 700;
-    box-shadow: 0 8px 20px rgba(16,185,129,0.3);
+    font-weight: 800;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 4px 15px rgba(0, 255, 136, 0.2);
+    transition: 0.3s;
 }
 
-.checkout-btn:hover {
-    transform: translateY(-2px);
-}
+.checkout-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0, 255, 136, 0.4); }
+
+.footer-wrapper { width: 100%; margin-top: auto; border-top: 1px solid var(--border); }
+
+@media (max-width: 991px) { .main-content-area { margin-left: 0 !important; } .total-box { flex-direction: column; text-align: center; } }
 </style>
 
-<div class="container">
+<div class="user-panel-wrapper">
+    <?php include '../partials/sidebar-user.php'; ?>
 
-    <h2>My Cart 🛒</h2>
+    <div class="main-content-area">
+        <div class="content-body">
+            
+            <div class="mb-5">
+                <span class="section-label">Your Selection</span>
+                <h1 class="page-title mt-1 italic">My Cart 🛒</h1>
+            </div>
 
-    <?php foreach ($products as $p): 
-        $qty = $cart[$p['id']];
-        $subtotal = $p['price'] * $qty;
-        $total += $subtotal;
-    ?>
+            <div class="cart-items-list">
+                <?php foreach ($products as $p): 
+                    $qty = $cart[$p['id']];
+                    $subtotal = $p['price'] * $qty;
+                    $total += $subtotal;
+                ?>
+                <div class="cart-card">
+                    <div class="cart-img-box">
+                        <img src="../assets/uploads/<?= $p['image'] ?>" class="cart-img">
+                    </div>
 
-    <div class="cart-card">
+                    <div class="cart-info">
+                        <h3><?= $p['product_name'] ?></h3>
+                        <p>₹<?= number_format($p['price'], 2) ?></p>
+                    </div>
 
-        <img src="../assets/uploads/<?= $p['image'] ?>" class="cart-img">
+                    <div class="qty-box">
+                        <button class="qty-btn minus" data-id="<?= $p['id'] ?>">-</button>
+                        <span class="qty-val"><?= $qty ?></span>
+                        <button class="qty-btn plus" data-id="<?= $p['id'] ?>">+</button>
+                    </div>
 
-        <div class="cart-info">
-            <h3><?= $p['product_name'] ?></h3>
-            <p>₹<?= number_format($p['price'],2) ?></p>
+                    <div style="font-weight: 800; font-size: 1rem; width: 100px; text-align: right;">
+                        ₹<?= number_format($subtotal, 2) ?>
+                    </div>
+
+                    <button class="remove-btn" data-id="<?= $p['id'] ?>">Remove</button>
+                </div>
+                <?php endforeach; ?>
+            </div>
+
+            <div class="total-box">
+                <h3>Total: <span style="color:var(--neon-green)">₹<?= number_format($total, 2) ?></span></h3>
+                <a href="checkout.php">
+                    <button class="checkout-btn">Proceed to Checkout →</button>
+                </a>
+            </div>
+
         </div>
 
-        <div class="qty-box">
-            <button class="qty-btn minus" data-id="<?= $p['id'] ?>">-</button>
-            <span><?= $qty ?></span>
-            <button class="qty-btn plus" data-id="<?= $p['id'] ?>">+</button>
+        <div class="footer-wrapper">
+            <?php include '../partials/footer.php'; ?>
         </div>
-
-        <div>
-            ₹<?= number_format($subtotal,2) ?>
-        </div>
-
-        <button class="remove-btn" data-id="<?= $p['id'] ?>">Remove</button>
-
     </div>
-
-    <?php endforeach; ?>
-
-    <div class="total-box">
-        <h3>Total: ₹<?= number_format($total,2) ?></h3>
-
-        <!-- ✅ FINAL BUTTON -->
-        <a href="checkout.php">
-            <button class="checkout-btn">
-                Proceed to Checkout →
-            </button>
-        </a>
-    </div>
-
 </div>
 
 <script>
-
-// INCREASE QTY
+// API Logic
 document.querySelectorAll('.plus').forEach(btn => {
     btn.addEventListener('click', () => {
         let id = btn.dataset.id;
@@ -163,7 +221,6 @@ document.querySelectorAll('.plus').forEach(btn => {
     });
 });
 
-// REMOVE ITEM
 document.querySelectorAll('.remove-btn').forEach(btn => {
     btn.addEventListener('click', () => {
         let id = btn.dataset.id;
@@ -174,7 +231,7 @@ document.querySelectorAll('.remove-btn').forEach(btn => {
         }).then(() => location.reload());
     });
 });
-
 </script>
 
-<?php include '../partials/footer.php'; ?>
+</body>
+</html>
