@@ -80,7 +80,7 @@
             <li class="sidebar-menu-group-title">Support</li>
 
             <li>
-                <a href="<?= BASE_URL ?>/contact.php">
+                <a href="<?= BASE_URL ?>/pages/contact.php">
                     <iconify-icon icon="mdi:help-circle-outline" class="menu-icon"></iconify-icon>
                     <span>Help Center</span>
                 </a>

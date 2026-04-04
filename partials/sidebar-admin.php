@@ -91,14 +91,14 @@ function isFolderActive($folderName, $currentPath) {
             <li class="sidebar-menu-group-title">Application</li>
 
             <li class="<?= isActive('email.php', $current_page) ?>">
-                <a href="<?= BASE_URL ?>/email.php">
+                <a href="<?= BASE_URL ?>/admin/email.php">
                     <iconify-icon icon="mage:email" class="menu-icon"></iconify-icon>
                     <span>Email</span>
                 </a>
             </li>
             
             <li class="<?= isActive('chat-message.php', $current_page) ?>">
-                <a href="<?= BASE_URL ?>/chat-message.php">
+                <a href="<?= BASE_URL ?>/admin/chat-message.php">
                     <iconify-icon icon="bi:chat-dots" class="menu-icon"></iconify-icon>
                     <span>Chat</span>
                 </a>
