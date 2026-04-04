@@ -1,91 +1,107 @@
 <?php
+session_start();
 require '../include/load.php';
+include '../partials/header.php';
 
-// User must be logged in
 checkLogin();
 
-// If cart is empty, go back to shop
+// cart empty check
 if (empty($_SESSION['cart'])) {
-    redirect('../index.php');
+    header("Location: ../index.php");
+    exit;
 }
 
-try {
-    // 1️⃣ START TRANSACTION
-    $pdo->beginTransaction();
+$cart = $_SESSION['cart'];
+$ids = array_keys($cart);
 
-    // 2️⃣ Get product IDs from cart
-    $ids = array_keys($_SESSION['cart']);
-    $placeholders = implode(',', array_fill(0, count($ids), '?'));
+$placeholders = implode(',', array_fill(0, count($ids), '?'));
+$stmt = $pdo->prepare("SELECT * FROM products WHERE id IN ($placeholders)");
+$stmt->execute($ids);
+$products = $stmt->fetchAll();
 
-    // Fetch product data again (SECURITY)
-    $stmt = $pdo->prepare("SELECT * FROM products WHERE id IN ($placeholders)");
-    $stmt->execute($ids);
-    $products = $stmt->fetchAll();
+$total = 0;
+?>
 
-    // 3️⃣ Calculate total again (never trust client)
-    $grandTotal = 0;
-    foreach ($products as $p) {
-        $grandTotal += $p['price'] * $_SESSION['cart'][$p['id']];
-    }
-
-    // 4️⃣ Create order
-    $stmt = $pdo->prepare(
-        "INSERT INTO orders (user_id, total_amount) VALUES (?, ?)"
-    );
-    $stmt->execute([$_SESSION['user_id'], $grandTotal]);
-
-    $orderId = $pdo->lastInsertId();
-
-    // 5️⃣ Insert order items
-    $stmtItem = $pdo->prepare(
-        "INSERT INTO order_items (order_id, product_id, quantity, price)
-         VALUES (?, ?, ?, ?)"
-    );
-
-    // --- NEW: Prepare Invoice Item Statement ---
-    $stmtInvoiceItem = $pdo->prepare(
-        "INSERT INTO invoice_items (invoice_id, product_name, quantity, price_per_unit, total_price)
-         VALUES (?, ?, ?, ?, ?)"
-    );
-
-    foreach ($products as $p) {
-        $qty = $_SESSION['cart'][$p['id']];
-        $itemPrice = $p['price'];
-        $itemTotal = $qty * $itemPrice;
-
-        $stmtItem->execute([$orderId, $p['id'], $qty, $itemPrice]);
-    }
-
-    // --- NEW: 6️⃣ Create Invoice (Project A Logic) ---
-    $invoiceNum = "INV-" . date('Y') . "-" . str_pad($orderId, 4, "0", STR_PAD_LEFT);
-    $tax = $grandTotal * 0.10;
-    $finalTotal = $grandTotal + $tax;
-
-    $stmtInv = $pdo->prepare(
-        "INSERT INTO invoices (invoice_number, order_id, customer_id, subtotal, tax_total, grand_total, status) 
-         VALUES (?, ?, ?, ?, ?, ?, 'unpaid')"
-    );
-    $stmtInv->execute([$invoiceNum, $orderId, $_SESSION['user_id'], $grandTotal, $tax, $finalTotal]);
-    $invoiceId = $pdo->lastInsertId();
-
-    // Insert Invoice Items
-    foreach ($products as $p) {
-        $qty = $_SESSION['cart'][$p['id']];
-        $stmtInvoiceItem->execute([$invoiceId, $p['product_name'], $qty, $p['price'], ($qty * $p['price'])]);
-    }
-
-    // 7️⃣ COMMIT (SAVE EVERYTHING)
-    $pdo->commit();
-
-    // 8️⃣ Clear cart
-    $_SESSION['cart'] = [];
-
-    // --- REDIRECT TO YOUR NEW SUCCESS PAGE ---
-    header("Location: order-success.php?id=" . $invoiceId);
-    exit();
-
-} catch (Exception $e) {
-    // 9️⃣ ROLLBACK (UNDO ON ERROR)
-    $pdo->rollBack();
-    die("Order failed: " . $e->getMessage());
+<style>
+body {
+    background: #f8fafc;
+    font-family: 'Inter', sans-serif;
 }
+
+.container {
+    max-width: 1100px;
+    margin: auto;
+    padding: 40px 20px;
+}
+
+.checkout-card {
+    background: #fff;
+    padding: 25px;
+    border-radius: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+}
+
+.checkout-item {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.total-box {
+    text-align: right;
+    margin-top: 20px;
+}
+
+.pay-btn {
+    margin-top: 20px;
+    padding: 14px 22px;
+    background: linear-gradient(135deg, #6366f1, #4f46e5);
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    font-weight: 700;
+    box-shadow: 0 8px 20px rgba(99,102,241,0.3);
+}
+
+.pay-btn:hover {
+    transform: translateY(-2px);
+}
+</style>
+
+<div class="container">
+
+    <h2>Checkout 🧾</h2>
+
+    <div class="checkout-card">
+        <h3>Order Summary</h3>
+
+        <?php foreach ($products as $p): 
+            $qty = $cart[$p['id']];
+            $subtotal = $p['price'] * $qty;
+            $total += $subtotal;
+        ?>
+
+        <div class="checkout-item">
+            <span><?= $p['product_name'] ?> (x<?= $qty ?>)</span>
+            <span>₹<?= number_format($subtotal,2) ?></span>
+        </div>
+
+        <?php endforeach; ?>
+
+        <div class="total-box">
+            <h3>Total: ₹<?= number_format($total,2) ?></h3>
+
+            <!-- ✅ NEXT STEP -->
+            <a href="payment.php">
+                <button class="pay-btn">
+                    Proceed to Payment →
+                </button>
+            </a>
+        </div>
+    </div>
+
+</div>
+
+<?php include '../partials/footer.php'; ?>

@@ -241,9 +241,9 @@ body {
                     </div>
                 </div>
 
-                <a href="cart_action.php?id=<?= $p['id'] ?>&action=add" class="action-icon cart-icon-btn" title="Add to Cart">
-                    <iconify-icon icon="lucide:shopping-cart"></iconify-icon>
-                </a>
+                <button class="action-icon cart-icon-btn add-btn" data-id="<?= $p['id'] ?>" title="Add to Cart">
+                   <iconify-icon icon="lucide:shopping-cart"></iconify-icon>
+                </button>
 
             </div>
         <?php endforeach; ?>
@@ -269,18 +269,19 @@ body {
     <script>
 $(document).ready(function() {
 
+    /* =========================
+       ❤️ WISHLIST
+    ========================= */
     $('.wish-btn').on('click', function() {
         const btn = $(this);
         const pid = btn.data('product-id');
 
         $.post('ajax/wishlist_add.php', { product_id: pid }, function(res) {
 
-            console.log(res); // debug
+            console.log(res);
 
-            /* SUCCESS */
             if (res.status === 'success') {
 
-                // heart active
                 btn.find('iconify-icon')
                    .attr('icon', 'solar:heart-bold')
                    .css('color', 'red');
@@ -290,13 +291,12 @@ $(document).ready(function() {
                     position: 'top-end',
                     icon: 'success',
                     title: 'Added to Wishlist ❤️',
-                    html: '<a href="pages/wishlist.php" style="color:#2563eb; font-weight:600; text-decoration:none;">Tap to view</a>',
+                    html: '<a href="pages/wishlist.php" style="color:#2563eb; font-weight:600;">Tap to view</a>',
                     showConfirmButton: false,
                     timer: 2500
                 });
             }
 
-            /* ALREADY EXISTS */
             else if (res.status === 'exists') {
                 Swal.fire({
                     toast: true,
@@ -308,7 +308,6 @@ $(document).ready(function() {
                 });
             }
 
-            /* LOGIN REQUIRED */
             else if (res.message === 'please_login') {
                 Swal.fire({
                     icon: 'warning',
@@ -317,7 +316,6 @@ $(document).ready(function() {
                 });
             }
 
-            /* OTHER ERROR */
             else {
                 Swal.fire({
                     icon: 'error',
@@ -328,12 +326,67 @@ $(document).ready(function() {
 
         }, 'json')
 
-        /* AJAX FAIL */
         .fail(function() {
             Swal.fire({
                 icon: 'error',
                 title: 'Server Error',
                 text: 'Request failed. Try again.'
+            });
+        });
+    });
+
+
+    /* =========================
+       🛒 ADD TO CART
+    ========================= */
+    $('.add-btn, .cart-icon-btn').on('click', function(e) {
+
+        e.preventDefault(); // IMPORTANT (link ko rokta hai)
+
+        const btn = $(this);
+        const pid = btn.data('id');
+
+        fetch('api/cart/add.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ id: pid })
+        })
+        .then(res => res.json())
+        .then(data => {
+
+            if (data.status === 'success') {
+
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'success',
+                    title: 'Product added to cart 🛒',
+                    html: '<a href="cart/index.php" style="color:#2563eb; font-weight:600;">Tap to view</a>',
+                    showConfirmButton: false,
+                    timer: 2500
+                });
+
+                // navbar count update
+                if (data.cart_count) {
+                    $('.cart-badge').text(data.cart_count);
+                }
+            }
+
+            else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Failed to add product'
+                });
+            }
+
+        })
+        .catch(() => {
+            Swal.fire({
+                icon: 'error',
+                title: 'Server Error'
             });
         });
 
